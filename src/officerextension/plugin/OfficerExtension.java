@@ -70,6 +70,10 @@ public class OfficerExtension extends BaseModPlugin {
 
         @Override
         public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            Class<?> c = findLoadedClass(name);
+            if (c != null) {
+                return c;
+            }
             // Be the defining classloader for all classes in the reflection whitelist
             // For classes defined by this loader, classes in java.lang.reflect will be loaded directly
             // by the system classloader, without the intermediate delegations.
