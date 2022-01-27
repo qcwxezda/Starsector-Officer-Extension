@@ -41,7 +41,7 @@ public class ForgetSkills extends ActionListener {
                 .append(officerPerson.getStats().getLevel())
                 .append(") will be demoted to level ")
                 .append(officerPerson.getStats().getLevel() - numForgetting)
-                .append(" and will permanently forget the following skills: \n\n");
+                .append(" and will forget the following skills: \n\n");
         for (SkillButton button : uiElement.getWrappedSkillButtons()) {
             if (button.isSelected()) {
                 SkillSpecAPI spec = button.getSkillSpec();
@@ -59,22 +59,28 @@ public class ForgetSkills extends ActionListener {
         }
         String bonusXPPercent = (int) (100f * Settings.DEMOTE_BONUS_XP_FRACTION) + "%";
         int numStoryPoints = Global.getSector().getPlayerStats().getStoryPoints();
-        String storyPointOrPoints = numStoryPoints == 1 ? "story point" : "story points";
+        int costStoryPoints = Settings.DEMOTE_OFFICER_SP_COST;
+        String storyPointOrPointsPlayer = numStoryPoints == 1 ? "story point" : "story points";
+        String storyPointOrPointsCost = costStoryPoints == 1 ? "story point" : "story points";
         confirmSB.append("\n")
-                .append("Demoting an officer requires a story point and grants ")
+                .append("Demoting an officer costs ")
+                .append(costStoryPoints)
+                .append(" ")
+                .append(storyPointOrPointsCost)
+                .append(" and grants ")
                 .append(bonusXPPercent)
                 .append(" bonus experience.\n\n")
                 .append("You have ")
                 .append(numStoryPoints)
                 .append(" ")
-                .append(storyPointOrPoints)
+                .append(storyPointOrPointsPlayer)
                 .append(".");
-        highlights.add("story point");
+        highlights.add(costStoryPoints + " " + storyPointOrPointsCost);
         colors.add(Misc.getStoryOptionColor());
         highlights.add(bonusXPPercent);
         colors.add(Misc.getStoryOptionColor());
         highlights.add("" + numStoryPoints);
-        colors.add(numStoryPoints >= 1 ? Misc.getStoryOptionColor() : Misc.getNegativeHighlightColor());
+        colors.add(numStoryPoints >= Settings.DEMOTE_OFFICER_SP_COST ? Misc.getStoryOptionColor() : Misc.getNegativeHighlightColor());
         ConfirmForgetSkills confirmListener = new ConfirmForgetSkills(uiElement);
         Util.ConfirmDialogData data = Util.showConfirmationDialog(
                 confirmSB.toString(),
@@ -90,7 +96,7 @@ public class ForgetSkills extends ActionListener {
         label.setHighlight(highlights.toArray(new String[0]));
         label.setHighlightColors(colors.toArray(new Color[0]));
         Button yesButton = data.confirmButton;
-        if (numStoryPoints < 1) {
+        if (numStoryPoints < Settings.DEMOTE_OFFICER_SP_COST) {
             yesButton.setEnabled(false);
         }
     }

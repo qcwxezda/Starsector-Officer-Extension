@@ -16,11 +16,7 @@ public class ReinstateOfficer extends ActionListener {
         ConfirmReinstateOfficer confirmListener = new ConfirmReinstateOfficer(uiElement);
         String name = uiElement.getOfficerData().getPerson().getNameString();
         int level = uiElement.getOfficerData().getPerson().getStats().getLevel();
-        String str = "Are you sure you want to reinstate " +
-                name +
-                " (level " +
-                level +
-                ")?";
+        String str = String.format("Are you sure you want to reinstate %s (level %s)?", name, level);
         Util.showConfirmationDialog(
                 str,
                 "Reinstate",

@@ -26,16 +26,14 @@ public class SuspendOfficer extends ActionListener {
         int level = officer.getStats().getLevel();
         String suspendCost = Misc.getDGSCredits(Settings.SUSPEND_OFFICER_COST_MULTIPLIER * Misc.getOfficerSalary(officer));
         String salaryPercent = (int) (100f * Settings.SUSPENDED_SALARY_FRACTION) + "%";
-        String str = "Are you sure you want to suspend " +
-                name +
-                " (level " +
-                level +
-                ")?\n\nSuspended officers receive " +
-                salaryPercent +
-                " of their usual pay.\n\n" +
-                "Suspending this officer will incur an upfront fee of " +
-                suspendCost +
-                ". Reinstating a suspended officer is free, as long as you have an empty space in your officer roster.";
+        String str = String.format("Are you sure you want to suspend %s (level %s)?" +
+                "\n\nSuspended officers receive %s of their usual pay." +
+                "\n\nSuspending this officer will incur an upfront fee of %s. " +
+                "Reinstating a suspended officer is free, as long as you have an empty space in your officer roster.",
+                name,
+                level,
+                salaryPercent,
+                suspendCost);
         boolean canAfford = Global.getSector().getPlayerFleet().getCargo().getCredits().get()
                 >= Settings.SUSPEND_OFFICER_COST_MULTIPLIER * Misc.getOfficerSalary(officer);
         ConfirmDialogData data = Util.showConfirmationDialog(

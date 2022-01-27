@@ -28,17 +28,20 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
         }
         // Have to do the check again here, since the player can press space bar to confirm despite
         // the confirm button being disabled
-        if (Global.getSector().getPlayerStats().getStoryPoints() < 1) {
+        int spCost = Settings.DEMOTE_OFFICER_SP_COST;
+        if (Global.getSector().getPlayerStats().getStoryPoints() < spCost) {
             return;
         }
-        Global.getSoundPlayer().playUISound("ui_char_spent_story_point_leadership", 1f, 1f);
-        Global.getSector().getPlayerStats().spendStoryPoints(
-                1,
-                true,
-                null,
-                true,
-                Settings.DEMOTE_BONUS_XP_FRACTION,
-                "Demoted an officer: " + officerData.getPerson().getNameString());
+        if (spCost > 0) {
+            Global.getSoundPlayer().playUISound("ui_char_spent_story_point_leadership", 1f, 1f);
+            Global.getSector().getPlayerStats().spendStoryPoints(
+                    spCost,
+                    true,
+                    null,
+                    true,
+                    Settings.DEMOTE_BONUS_XP_FRACTION,
+                    "Demoted an officer: " + officerData.getPerson().getNameString());
+        }
         int forgotSkills = 0;
         MutableCharacterStatsAPI stats = officerData.getPerson().getStats();
         for (SkillButton button : uiElement.getWrappedSkillButtons()) {

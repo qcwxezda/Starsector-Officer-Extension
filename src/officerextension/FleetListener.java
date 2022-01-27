@@ -1,7 +1,13 @@
 package officerextension;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.*;
+import com.fs.starfarer.api.characters.LevelBasedEffect.ScopeDescription;
+import com.fs.starfarer.api.characters.MutableCharacterStatsAPI.SkillLevelAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
+import com.fs.starfarer.api.characters.SkillSpecAPI;
+
+import java.util.List;
 
 public class FleetListener extends BaseCampaignEventListener {
 
@@ -17,7 +23,25 @@ public class FleetListener extends BaseCampaignEventListener {
         }
 
         CampaignFleetAPI fleet = (CampaignFleetAPI) target;
-        PersonAPI commander = fleet.getCommander();
+        PersonAPI commander;
+        if (fleet.getBattle() == null) {
+            commander = fleet.getCommander();
+        }
+        // If interacting fleet is currently in a battle, and
+        // the player is allowed to join the battle, show the stats
+        // of the enemy fleet.
+        else {
+            BattleAPI.BattleSide side = fleet.getBattle().pickSide(Global.getSector().getPlayerFleet());
+            switch (side) {
+                case ONE:
+                case TWO:
+                    commander = fleet.getBattle().getOtherSideCombined(side).getCommander();
+                    break;
+                default:
+                    return;
+            }
+        }
+
 
         if (commander == null || commander.isPlayer()) {
             return;
@@ -25,13 +49,51 @@ public class FleetListener extends BaseCampaignEventListener {
 
         TextPanelAPI textPanel = dialog.getTextPanel();
         textPanel.setFontSmallInsignia();
-        if (commander.getStats().getLevel() >= 1) {
-            textPanel.addPara("The fleet's commander, "
-                            + commander.getNameString() +
-                            " (level " +
-                            commander.getStats().getLevel() +
-                            "), possesses the following combat skills: ");
-            textPanel.addSkillPanel(commander, false);
+
+        if (Settings.SPLIT_COMMANDER_SKILLS) {
+            PersonAPI tempPersonPersonal = Global.getSettings().createPerson();
+            PersonAPI tempPersonFleet = Global.getSettings().createPerson();
+            tempPersonPersonal.setFaction(commander.getFaction().getId());
+            tempPersonFleet.setFaction(commander.getFaction().getId());
+            List<SkillLevelAPI> skillLevels = commander.getStats().getSkillsCopy();
+            boolean hasPersonal = false, hasFleet = false;
+            for (SkillLevelAPI level : skillLevels) {
+                SkillSpecAPI skill = level.getSkill();
+                if (skill.isCombatOfficerSkill()) {
+                    tempPersonPersonal.getStats().setSkillLevel(skill.getId(), level.getLevel());
+                    hasPersonal = true;
+                }
+                else if (skill.isAdmiralSkill()) {
+                    tempPersonFleet.getStats().setSkillLevel(skill.getId(), level.getLevel());
+                    hasFleet = true;
+                }
+            }
+            String text1 = "The opposing fleet's commander, %s (level %s), possesses the following admiral skills: ";
+            String text2 = "The opposing fleet's commander, %s (level %s), possesses the following personal combat skills: ";
+            String text3 = "In addition, %s also possesses the following personal combat skills: ";
+            if (hasFleet) {
+                textPanel.addPara(String.format(text1, commander.getNameString(), commander.getStats().getLevel()));
+                textPanel.addSkillPanel(tempPersonFleet, false);
+            }
+            if (hasPersonal) {
+                if (!hasFleet) {
+                    textPanel.addPara(String.format(text2, commander.getNameString(), commander.getStats().getLevel()));
+                }
+                else {
+                    textPanel.addPara(String.format(text3, commander.getHeOrShe()));
+                }
+                textPanel.addSkillPanel(tempPersonPersonal, false);
+            }
+        }
+        else {
+            if (commander.getStats().getLevel() >= 1) {
+                textPanel.addPara(
+                        String.format(
+                                "The fleet's commander, %s (level %s), possesses the following personal combat skills: ",
+                                commander.getNameString(),
+                                commander.getStats().getLevel()));
+                textPanel.addSkillPanel(commander, false);
+            }
         }
         textPanel.setFontInsignia();
     }
