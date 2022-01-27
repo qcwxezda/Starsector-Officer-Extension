@@ -56,7 +56,6 @@ public class SuspendOfficer extends ActionListener {
         Button yesButton = data.confirmButton;
         if (!canAfford) {
             yesButton.setEnabled(false);
-            yesButton.setActive(false);
         }
     }
 }

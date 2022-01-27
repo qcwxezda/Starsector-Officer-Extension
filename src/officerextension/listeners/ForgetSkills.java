@@ -92,7 +92,6 @@ public class ForgetSkills extends ActionListener {
         Button yesButton = data.confirmButton;
         if (numStoryPoints < 1) {
             yesButton.setEnabled(false);
-            yesButton.setActive(false);
         }
     }
 }

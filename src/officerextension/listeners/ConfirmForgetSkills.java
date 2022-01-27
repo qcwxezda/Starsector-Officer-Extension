@@ -38,7 +38,7 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
                 null,
                 true,
                 Settings.DEMOTE_BONUS_XP_FRACTION,
-                "Reinstated a suspended officer: " + officerData.getPerson().getNameString());
+                "Demoted an officer: " + officerData.getPerson().getNameString());
         int forgotSkills = 0;
         MutableCharacterStatsAPI stats = officerData.getPerson().getStats();
         for (SkillButton button : uiElement.getWrappedSkillButtons()) {
