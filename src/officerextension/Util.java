@@ -6,8 +6,6 @@ import com.fs.starfarer.api.ui.*;
 import officerextension.ui.Button;
 import officerextension.listeners.ActionListener;
 import officerextension.listeners.DialogDismissedListener;
-import sun.reflect.misc.MethodUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -146,13 +144,6 @@ public class Util {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    public static void printClassLoaderHierarchy(ClassLoader classLoader) {
-        while (classLoader != null) {
-            System.out.println(classLoader);
-            classLoader = classLoader.getParent();
         }
     }
 }
