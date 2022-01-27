@@ -270,6 +270,7 @@ public class CoreScript implements EveryFrameScript {
             for (int i = 0; i < suspendedOfficers.size(); i++) {
                 OfficerDataAPI officer = suspendedOfficers.get(i);
                 // Constructor info: captain picker dialog, fleet, fleet member, officer, gray (true) or black (false) background, is AI
+                //noinspection JavaReflectionInvocation
                 Object panel = cons.newInstance(
                         cpd,
                         Global.getSector().getPlayerFleet(),
