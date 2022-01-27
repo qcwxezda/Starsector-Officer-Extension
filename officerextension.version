@@ -1,7 +1,7 @@
 {
-  "masterVersionFile": "TBD",
+  "masterVersionFile": "https://raw.githubusercontent.com/qcwxezda/Starsector-Officer-Extension/main/officerextension.version",
   "modName": "Officer Extension",
-  "modThreadId": "TBD",
+  "modThreadId": 23928,
   "modVersion":
   {
     "major":0,
