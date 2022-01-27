@@ -1,0 +1,7 @@
+{
+  "suspendedOfficerMonthlySalaryFraction": 0.25,
+  "demoteOfficerBonusXPFraction": 1,
+  "suspendOfficerCostMultiplier": 10,
+  "forgetEliteSkillBonusXPFraction": 0,
+  "shouldShowFleetCommanderSkills": true
+}

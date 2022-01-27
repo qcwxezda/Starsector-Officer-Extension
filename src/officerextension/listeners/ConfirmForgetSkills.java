@@ -1,0 +1,77 @@
+package officerextension.listeners;
+
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.characters.MutableCharacterStatsAPI;
+import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.plugins.OfficerLevelupPlugin;
+import com.fs.starfarer.campaign.CharacterStats;
+import officerextension.Settings;
+import officerextension.ui.OfficerUIElement;
+import officerextension.ui.SkillButton;
+
+public class ConfirmForgetSkills extends DialogDismissedListener {
+
+    private final OfficerUIElement uiElement;
+    private final OfficerDataAPI officerData;
+
+    public ConfirmForgetSkills(OfficerUIElement uiElement) {
+        this.uiElement = uiElement;
+        this.officerData = uiElement.getOfficerData();
+    }
+
+    @Override
+    public void trigger(Object... args) {
+        // The second argument is 0 if confirmed, 1 if canceled
+        int option = (int) args[1];
+        if (option == 1) {
+            return;
+        }
+        // Have to do the check again here, since the player can press space bar to confirm despite
+        // the confirm button being disabled
+        if (Global.getSector().getPlayerStats().getStoryPoints() < 1) {
+            return;
+        }
+        Global.getSoundPlayer().playUISound("ui_char_spent_story_point_leadership", 1f, 1f);
+        Global.getSector().getPlayerStats().spendStoryPoints(
+                1,
+                true,
+                null,
+                true,
+                Settings.DEMOTE_BONUS_XP_FRACTION,
+                "Reinstated a suspended officer: " + officerData.getPerson().getNameString());
+        int forgotSkills = 0;
+        MutableCharacterStatsAPI stats = officerData.getPerson().getStats();
+        for (SkillButton button : uiElement.getWrappedSkillButtons()) {
+            if (button.isSelected()) {
+                String skillId = button.getSkillSpec().getId();
+                // If elite, give some bonus XP
+                // Default is 0 due to inability to differentiate between bought elite skills
+                // and those that were already elite (i.e. cryopod officers)
+                if (stats.getSkillLevel(skillId) > 1) {
+                    Global.getSector().getPlayerStats().setOnlyAddBonusXPDoNotSpendStoryPoints(true);
+                    Global.getSector().getPlayerStats().spendStoryPoints(1, true, null, true, Settings.FORGET_ELITE_BONUS_XP_FRACTION, null);
+                    Global.getSector().getPlayerStats().setOnlyAddBonusXPDoNotSpendStoryPoints(false);
+                }
+                stats.setSkillLevel(skillId, 0);
+                forgotSkills++;
+            }
+        }
+        if (forgotSkills > 0) {
+            // Preserve the percentage progress towards the next level
+            OfficerLevelupPlugin levelUpPlugin = (OfficerLevelupPlugin) Global.getSettings().getPlugin("officerLevelUp");
+            int level = stats.getLevel();
+            float fractionToNextLevel = 0f;
+            if (level < levelUpPlugin.getMaxLevel(officerData.getPerson())) {
+                long xpCur = levelUpPlugin.getXPForLevel(level);
+                long xpNext = levelUpPlugin.getXPForLevel(level + 1);
+                fractionToNextLevel = (float) (stats.getXP() - xpCur) / (xpNext - xpCur);
+            }
+            int newLevel = level - forgotSkills;
+            long newLevelXP = levelUpPlugin.getXPForLevel(newLevel);
+            long newXP = (long) (newLevelXP + fractionToNextLevel * (levelUpPlugin.getXPForLevel(newLevel + 1) - newLevelXP));
+            ((CharacterStats) stats).setXP(newXP);
+            stats.setLevel(stats.getLevel() - forgotSkills);
+            uiElement.recreate();
+        }
+    }
+}
