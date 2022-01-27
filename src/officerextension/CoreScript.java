@@ -205,12 +205,12 @@ public class CoreScript implements EveryFrameScript {
         elem.setWrappedSkillButtons(wrappedSkillButtons);
     }
 
-    /** Adds and overlays the "forget..." button on top of the "Level up!" button. */
+    /** Adds and overlays the forget ("demote") button on top of the "Level up!" button. */
     private void insertForgetButton(OfficerUIElement elem) {
         elem.setForgetSkillsButton(
                 insertButtonOnTopOfLevelUp(
                         elem,
-                        "Forget...",
+                        "Demote",
                         Misc.getStoryOptionColor(),
                         Misc.getStoryDarkColor(),
                         new ForgetSkills(elem)

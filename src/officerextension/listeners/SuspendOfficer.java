@@ -33,7 +33,7 @@ public class SuspendOfficer extends ActionListener {
                 ")?\n\nSuspended officers receive " +
                 salaryPercent +
                 " of their usual pay.\n\n" +
-                "Suspending this officer will cost an upfront fee of " +
+                "Suspending this officer will incur an upfront fee of " +
                 suspendCost +
                 ". Reinstating a suspended officer is free, as long as you have an empty space in your officer roster.";
         boolean canAfford = Global.getSector().getPlayerFleet().getCargo().getCredits().get()

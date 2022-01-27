@@ -78,7 +78,7 @@ public class ForgetSkills extends ActionListener {
         ConfirmForgetSkills confirmListener = new ConfirmForgetSkills(uiElement);
         Util.ConfirmDialogData data = Util.showConfirmationDialog(
                 confirmSB.toString(),
-                "Forget",
+                "Demote",
                 "Never mind",
                 650f,
                 250f + 20f * numForgetting,

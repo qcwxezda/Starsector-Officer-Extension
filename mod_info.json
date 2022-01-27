@@ -5,7 +5,7 @@
   "version": {"major":0, "minor":3, "patch":0},
   "dependencies": [],
   "utility": true,
-  "description": "Also allows officers to be suspended and reinstated; suspended officers do not occupy an officer slot but still demand a reduced monthly salary. Also allows demoting of officers for a story point cost, causing them to forget selected skills. \n\nDisplays the opposing side's commander's skills upon fleet interaction.",
+  "description": "Allows officers to be suspended and reinstated; suspended officers do not occupy an officer slot but still demand a reduced monthly salary. Also allows demoting of officers for a story point cost, causing them to forget selected skills. \n\nDisplays the opposing side's commander's skills upon fleet interaction.",
   "gameVersion": "0.95.1a-RC6",
   "jars": ["jars/Officer Extension.jar"],
   "modPlugin": "officerextension.plugin.OfficerExtension"
