@@ -14,6 +14,7 @@ import officerextension.ui.Button;
 import officerextension.ui.CaptainPicker;
 import officerextension.ui.OfficerUIElement;
 import officerextension.ui.SkillButton;
+import officerextension.ui.Label;
 import officerextension.listeners.*;
 
 import java.awt.*;
@@ -114,20 +115,6 @@ public class CoreScript implements EveryFrameScript {
                 if (children.get(0) != entry.getValue()) {
                     inject(elem);
                 }
-                // If suspended, need to change values every frame
-                // This is because the officer status label is updated every frame
-                // in the base game, and we need to overwrite it
-                else if (Util.isSuspended(elem.getOfficerData())) {
-                    elem.getFleetMemberLabel().setText("Suspended");
-                    elem.getFleetMemberLabel().setHighlight("Suspended");
-                    elem.getFleetMemberLabel().setHighlightColor(Misc.getNegativeHighlightColor());
-                    elem.getFleetMemberLabel().setOpacity(1.0f);
-                    elem.getStatusLabel().setText(elem.getOfficerData().getPerson().getPersonalityAPI().getDisplayName() + ", suspended");
-                    elem.getStatusLabel().setHighlight("suspended");
-                    elem.getStatusLabel().setHighlightColor(Misc.getNegativeHighlightColor());
-                    elem.getSelector().setActive(false);
-                    elem.getPortrait().setActive(false);
-                }
             }
         }
     }
@@ -161,8 +148,9 @@ public class CoreScript implements EveryFrameScript {
         if (Misc.isMercenary(data.getPerson())) {
             return;
         }
-        // For suspended officers, update their salary label
+
         if (Util.isSuspended(data)) {
+            // Update the salary label
             LabelAPI label = elem.getSalaryLabel();
             String oldSalaryText = Misc.getDGSCredits(Misc.getOfficerSalary(data.getPerson()));
             String salaryText = Misc.getDGSCredits(Settings.SUSPENDED_SALARY_FRACTION * Misc.getOfficerSalary(data.getPerson()));
@@ -173,6 +161,37 @@ public class CoreScript implements EveryFrameScript {
             // getXAlignOffset is not exposed in the API
             float xAlignOffset = (float) Util.invokeGetter(label.getPosition(), "getXAlignOffset");
             label.getPosition().setXAlignOffset(xAlignOffset + xDiff);
+
+            // Disable the selectors
+            elem.getSelector().setActive(false);
+            elem.getPortrait().setActive(false);
+
+            // Disable the existing "Unassigned" and "personality, status" labels
+            elem.getFleetMemberLabel().setText("");
+            elem.getStatusLabel().setOpacity(0f);
+
+            // Add our own
+            String personality = elem.getOfficerData().getPerson().getPersonalityAPI().getDisplayName();
+            Label temp = new Label(elem.getStatusLabel());
+            LabelAPI suspendedLabel = temp.create("Suspended");
+            LabelAPI newStatusLabel = temp.create(personality + ", suspended");
+            suspendedLabel.setAlignment(Alignment.MID);
+            suspendedLabel.setHighlight("Suspended");
+            suspendedLabel.setHighlightColor(Misc.getNegativeHighlightColor());
+            newStatusLabel.setHighlight(personality + ",", "suspended");
+            newStatusLabel.setHighlightColors(Misc.getGrayColor(), Misc.getNegativeHighlightColor());
+
+            try {
+                Method addMethod = elem.getInstance().getClass().getMethod("add", ClassRefs.renderableUIElementInterface);
+                PositionAPI suspendedPosition = (PositionAPI) addMethod.invoke(elem.getInstance(), suspendedLabel);
+                PositionAPI statusPosition = (PositionAPI) addMethod.invoke(elem.getInstance(), newStatusLabel);
+                Method setMethod = statusPosition.getClass().getMethod("set", statusPosition.getClass());
+                setMethod.invoke(suspendedPosition, elem.getFleetMemberLabel().getPosition());
+                setMethod.invoke(statusPosition, elem.getStatusLabel().getPosition());
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         injectSkillButtons(elem);
