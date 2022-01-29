@@ -4,6 +4,8 @@ import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.*;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.characters.PersonAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.campaign.fleet.CampaignFleet;
@@ -25,6 +27,9 @@ import java.util.*;
 import java.util.List;
 
 public class CoreScript implements EveryFrameScript {
+
+    /** Keep track of the initial assignments for undoing purposes */
+    private final Map<FleetMemberAPI, PersonAPI> initialOfficerMap = new HashMap<>();
 
     /** Maps each officer's panel to its first child object. Can check when recreate() has
      *  been called by checking when the first child object changes. */
@@ -95,17 +100,18 @@ public class CoreScript implements EveryFrameScript {
         // Haven't grabbed the panels yet; do that
         // and the initial injection
         if (officerPanelFirstChild.isEmpty()) {
-            officerListRef = cpd.getListOfficers();
-            insertSuspendedOfficers(cpd);
-            injectAll(cpd);
+            FleetDataAPI fleetData = Global.getSector().getPlayerFleet().getFleetData();
+            // Populate the initial officer map for undoing purposes
+            initialOfficerMap.clear();
+            for (FleetMemberAPI fm : fleetData.getMembersListCopy()) {
+                initialOfficerMap.put(fm, fm.getCaptain());
+            }
+            injectCaptainPickerDialog(cpd);
         }
         else {
             // If the officer list has changed, we need to re-inject every panel
             if (officerListRef != cpd.getListOfficers()) {
-                officerListRef = cpd.getListOfficers();
-                officerPanelFirstChild.clear();
-                insertSuspendedOfficers(cpd);
-                injectAll(cpd);
+                injectCaptainPickerDialog(cpd);
             }
             // Check each panel to see if we need to re-inject
             // due to that panel being recreated
@@ -116,6 +122,32 @@ public class CoreScript implements EveryFrameScript {
                     inject(elem);
                 }
             }
+        }
+    }
+
+    private void injectCaptainPickerDialog(CaptainPickerDialog cpd) {
+        officerListRef = cpd.getListOfficers();
+        officerPanelFirstChild.clear();
+        insertUndoButton(cpd);
+        insertSuspendedOfficers(cpd);
+        injectAll(cpd);
+    }
+
+    private void insertUndoButton(CaptainPickerDialog cpd) {
+        UndoAssignments undoListener = new UndoAssignments(initialOfficerMap);
+        Button undoButton = Util.makeButton(
+                "Undo assignments",
+                undoListener,
+                Misc.getBasePlayerColor(),
+                Misc.getDarkPlayerColor(),
+                200f,
+                25f);
+        try {
+            Method addMethod = cpd.getInnerPanel().getClass().getMethod("add", ClassRefs.renderableUIElementInterface);
+            ((PositionAPI) addMethod.invoke(cpd.getInnerPanel(), undoButton.getInstance())).inBMid(10f);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
