@@ -4,7 +4,7 @@ A Starsector mod that offers the ability to suspend and demote officers.
 
 ## Suspend officers
 
-- Suspend officers in your fleet for an upfront fee equal to four times their monthly salary.
+- Suspend officers in your fleet for an upfront fee equal to six times their monthly salary.
 - Suspended officers cannot be assigned to any ship and do not count against your normal officer limit. However, they must still be paid 25% of their standard salary.
 - Suspended officers can be reinstated at any time for no cost, as long as reinstatement would not cause you to exceed your officer limit.
 - Does not apply to mercenaries or AI cores.
