@@ -3,12 +3,14 @@ package officerextension.plugin;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.characters.OfficerDataAPI;
 import officerextension.*;
 import org.apache.log4j.Logger;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class OfficerExtension extends BaseModPlugin {
@@ -48,12 +50,23 @@ public class OfficerExtension extends BaseModPlugin {
             return;
         }
 
-
         Settings.load();
         Global.getSector().addTransientListener(new EconomyListener(false));
         FleetListener fleetListener = new FleetListener(false);
         if (Settings.SHOW_COMMANDER_SKILLS) {
             Global.getSector().addTransientListener(fleetListener);
+        }
+
+        // Add suspended officers from pre 0.4 versions back into the player's fleet (for compatibility, will be
+        // removed eventually
+        @SuppressWarnings("unchecked")
+        List<OfficerDataAPI> suspendedOfficers = (List<OfficerDataAPI>) Global.getSector().getPersistentData().get(Settings.SUSPENDED_OFFICERS_DATA_KEY);
+        if (suspendedOfficers != null) {
+            for (OfficerDataAPI officer : suspendedOfficers) {
+                Global.getSector().getPlayerFleet().getFleetData().addOfficer(officer);
+                Util.suspend(officer);
+            }
+            Global.getSector().getPersistentData().remove(Settings.SUSPENDED_OFFICERS_DATA_KEY);
         }
     }
 

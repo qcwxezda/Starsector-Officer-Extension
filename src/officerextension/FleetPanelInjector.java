@@ -2,6 +2,7 @@ package officerextension;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.*;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Misc;
 import officerextension.listeners.AutoAssignIdleOfficers;
@@ -60,7 +61,16 @@ public class FleetPanelInjector {
         if (idleOfficersLabel != null && autoAssignButton != null) {
             int idle = Util.countIdleOfficers(Global.getSector().getPlayerFleet());
             int assigned = Util.countAssignedNonMercOfficers(Global.getSector().getPlayerFleet());
-            boolean canAutoAssign = idle > 0 && assigned < Misc.getMaxOfficers(Global.getSector().getPlayerFleet());
+            boolean hasUnofficeredShip = false;
+            for (FleetMemberAPI fm : Global.getSector().getPlayerFleet().getFleetData().getMembersListCopy()) {
+                if (!Misc.isAutomated(fm) && fm.getCaptain().isDefault()) {
+                    hasUnofficeredShip = true;
+                    break;
+                }
+            }
+            boolean canAutoAssign = idle > 0
+                    && assigned < Misc.getMaxOfficers(Global.getSector().getPlayerFleet())
+                    && hasUnofficeredShip;
 
             LabelAPI inner = idleOfficersLabel.getInstance();
             inner.setText("" + idle);
