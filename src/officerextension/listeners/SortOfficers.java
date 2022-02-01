@@ -3,6 +3,7 @@ package officerextension.listeners;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.campaign.fleet.FleetData;
 import com.fs.starfarer.coreui.CaptainPickerDialog;
 import officerextension.CoreScript;
@@ -26,11 +27,21 @@ public class SortOfficers extends ActionListener {
 
         final CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
 
+        // Mercenaries first. This is because the base game will float mercenaries up to position 8 (or 10)
+        // in the list if they are below that, every time you open the dialog.
         // Unassigned, then assigned, then suspended
         Collections.sort(((FleetData) playerFleet.getFleetData()).getOfficers(),
                 new Comparator<OfficerDataAPI>() {
                     @Override
                     public int compare(OfficerDataAPI o1, OfficerDataAPI o2) {
+                        boolean m1 = Misc.isMercenary(o1.getPerson());
+                        boolean m2 = Misc.isMercenary(o2.getPerson());
+                        if (m1 && !m2) {
+                            return -1;
+                        }
+                        if (!m1 && m2) {
+                            return 1;
+                        }
                         boolean s1 = Util.isSuspended(o1);
                         boolean s2 = Util.isSuspended(o2);
                         if (s1 && !s2) {

@@ -101,9 +101,11 @@ public class CoreScript implements EveryFrameScript {
         if (cpd == null || cpd != cpdRef) {
             // The existing dialog was closed,
             // and we have to inject every panel again
+            // Also clear any existing filters
             officerPanelFirstChild.clear();
             injectedCurrentDialog = false;
             cpdRef = cpd;
+            activeFilters.clear();
             return;
         }
 
