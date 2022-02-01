@@ -2,18 +2,19 @@ package officerextension.ui;
 
 import com.fs.starfarer.api.ui.ButtonAPI;
 import officerextension.ClassRefs;
-import officerextension.Util;
+import officerextension.UtilReflection;
 import officerextension.listeners.ActionListener;
 
 import java.lang.reflect.Method;
 
-public class Button extends RenderableUIElement {
+public class Button extends UIComponent implements Renderable {
 
     /** [o] should be an instance of the underlying Button object */
     public Button(ButtonAPI o) {
         super(o);
     }
 
+    @Override
     public ButtonAPI getInstance() {
         return (ButtonAPI) inner;
     }
@@ -36,19 +37,14 @@ public class Button extends RenderableUIElement {
         }
     }
 
+    public Object getListener() {
+        return UtilReflection.invokeGetter(inner, "getListener");
+    }
+
     public void setButtonPressedSound(String soundId) {
         try {
             Method setSound = inner.getClass().getMethod("setButtonPressedSound", String.class);
             setSound.invoke(inner, soundId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void setActive(boolean active) {
-        try {
-            Method setActive = inner.getClass().getMethod("setActive", boolean.class);
-            setActive.invoke(inner, active);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,10 +55,10 @@ public class Button extends RenderableUIElement {
 
     public String getText() {
         try {
-            Object renderer = Util.invokeGetter(inner, "getRenderer");
+            Object renderer = UtilReflection.invokeGetter(inner, "getRenderer");
             Object graphicsObject = null;
             if (graphicsObjectGetterName != null) {
-                graphicsObject = Util.invokeGetter(renderer, graphicsObjectGetterName);
+                graphicsObject = UtilReflection.invokeGetter(renderer, graphicsObjectGetterName);
             }
             else {
                 for (Method method : renderer.getClass().getDeclaredMethods()) {
@@ -78,7 +74,7 @@ public class Button extends RenderableUIElement {
             }
 
             if (textGetterName != null) {
-                return (String) Util.invokeGetter(graphicsObject, textGetterName);
+                return (String) UtilReflection.invokeGetter(graphicsObject, textGetterName);
             }
             for (Method method : graphicsObject.getClass().getDeclaredMethods()) {
                 if (String.class.isAssignableFrom(method.getReturnType())) {

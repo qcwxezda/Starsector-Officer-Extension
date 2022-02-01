@@ -39,6 +39,9 @@ public class EconomyListener extends BaseCampaignEventListener  {
             child.name = officer.getPerson().getNameString();
             child.upkeep += f * salary;
             child.custom = officer;
+            // Undo the suspended officers' salary in the base officer node
+            FDNode originalChild = report.getNode(officerNode, officer.getPerson().getId());
+            originalChild.upkeep -= f * Misc.getOfficerSalary(officer.getPerson());
         }
     }
 

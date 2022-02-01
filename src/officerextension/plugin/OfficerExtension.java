@@ -18,8 +18,9 @@ public class OfficerExtension extends BaseModPlugin {
     private static final String[] reflectionWhitelist = new String[] {
             "officerextension.CoreScript",
             "officerextension.ClassRefs",
-            "officerextension.Util",
+            "officerextension.UtilReflection",
             "officerextension.ui",
+            "officerextension.FleetPanelInjector",
             "officerextension.listeners"
     };
 
@@ -47,10 +48,12 @@ public class OfficerExtension extends BaseModPlugin {
             return;
         }
 
+
         Settings.load();
         Global.getSector().addTransientListener(new EconomyListener(false));
+        FleetListener fleetListener = new FleetListener(false);
         if (Settings.SHOW_COMMANDER_SKILLS) {
-            Global.getSector().addTransientListener(new FleetListener(false));
+            Global.getSector().addTransientListener(fleetListener);
         }
     }
 

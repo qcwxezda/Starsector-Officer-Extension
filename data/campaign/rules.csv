@@ -1,0 +1,7 @@
+id,trigger,conditions,script,text,options,notes,,
+# Overriding the cantHire behavior from the base game
+ome_cantHire,PopulateOptionsHire,"$ome_hireable score:100
+!$isMercenary
+CallEvent $ome_eventRef atLimit $id
+!$ome_isAdmin",,,"0:ome_askHire:Offer to hire $himOrHer
+2:ome_convEnd:End the conversation",,,

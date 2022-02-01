@@ -39,18 +39,11 @@ public class ConfirmSuspendOfficer extends DialogDismissedListener {
         FleetDataAPI playerFleetData = Global.getSector().getPlayerFleet().getFleetData();
         FleetMemberAPI fleetMember = playerFleetData.getMemberWithCaptain(officerData.getPerson());
         if (fleetMember != null) {
-            fleetMember.setCaptain(null);
+            // Default person is the commander for unofficered ships -- commander is never null
+            fleetMember.setCaptain(Global.getSettings().createPerson());
         }
-        playerFleetData.removeOfficer(officerData.getPerson());
-        // Note: this is slightly different behavior than the "dismiss" button,
-        // since it will reset the state of every officer panel,
-        // rather than just the relevant one.
-        // Could call removeItem() and collapseEmptySlots() instead,
-        // but then would need to manually add the suspended officer back to the
-        // dialog list.
-        float scrollPosition = uiElement.getCaptainPickerDialog().getListOfficers().getScroller().getYOffset();
-        uiElement.getCaptainPickerDialog().sizeChanged(0f, 0f);
-        uiElement.getCaptainPickerDialog().getListOfficers().getScroller().setYOffset(scrollPosition);
-        Util.addSuspendedOfficer(officerData);
+        //playerFleetData.removeOfficer(officerData.getPerson());
+        Util.suspend(officerData);
+        uiElement.recreate();
     }
 }

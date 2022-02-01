@@ -1,6 +1,6 @@
 package officerextension.listeners;
 
-import officerextension.Util;
+import officerextension.UtilReflection;
 import officerextension.ui.OfficerUIElement;
 
 public class ReinstateOfficer extends ActionListener {
@@ -17,7 +17,7 @@ public class ReinstateOfficer extends ActionListener {
         String name = uiElement.getOfficerData().getPerson().getNameString();
         int level = uiElement.getOfficerData().getPerson().getStats().getLevel();
         String str = String.format("Are you sure you want to reinstate %s (level %s)?", name, level);
-        Util.showConfirmationDialog(
+        UtilReflection.showConfirmationDialog(
                 str,
                 "Reinstate",
                 "Never mind",

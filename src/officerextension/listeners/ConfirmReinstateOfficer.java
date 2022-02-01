@@ -1,6 +1,5 @@
 package officerextension.listeners;
 
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import officerextension.Util;
 import officerextension.ui.OfficerUIElement;
@@ -22,10 +21,8 @@ public class ConfirmReinstateOfficer extends DialogDismissedListener {
         if (option == 1) {
             return;
         }
-        Util.removeSuspendedOfficer(officerData);
-        Global.getSector().getPlayerFleet().getFleetData().addOfficer(officerData);
-        float scrollPosition = uiElement.getCaptainPickerDialog().getListOfficers().getScroller().getYOffset();
-        uiElement.getCaptainPickerDialog().sizeChanged(0f, 0f);
-        uiElement.getCaptainPickerDialog().getListOfficers().getScroller().setYOffset(scrollPosition);
+        // Global.getSector().getPlayerFleet().getFleetData().addOfficer(officerData);
+        Util.reinstate(officerData);
+        uiElement.recreate();
     }
 }

@@ -8,7 +8,7 @@ import com.fs.starfarer.api.characters.SkillSpecAPI;
 
 import java.util.List;
 
-public class FleetListener extends BaseCampaignEventListener {
+public class FleetListener extends BaseCampaignEventListener{
 
     public FleetListener(boolean permaRegister) {
         super(permaRegister);
@@ -40,7 +40,6 @@ public class FleetListener extends BaseCampaignEventListener {
                     return;
             }
         }
-
 
         if (commander == null || commander.isPlayer()) {
             return;

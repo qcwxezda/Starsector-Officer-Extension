@@ -2,7 +2,6 @@ package officerextension;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignUIAPI;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -28,8 +27,8 @@ public class ClassRefs {
         // If we don't know the confirmation dialog class, try to create a confirmation dialog in order to access it
         try {
             if (confirmDialogClass == null && campaignUI.showConfirmDialog("", "", "", null, null)) {
-                Object screenPanel = Util.getField(campaignUI, "screenPanel");
-                List<?> children = (List<?>) Util.invokeGetter(screenPanel, "getChildrenNonCopy");
+                Object screenPanel = UtilReflection.getField(campaignUI, "screenPanel");
+                List<?> children = (List<?>) UtilReflection.invokeGetter(screenPanel, "getChildrenNonCopy");
                 // the confirm dialog will be the last child
                 Object panel = children.get(children.size() - 1);
                 confirmDialogClass = panel.getClass();
@@ -95,7 +94,7 @@ public class ClassRefs {
             findUIPanelClass();
         }
         if (renderableUIElementInterface == null) {
-            findRenderableUIElementInterface(Util.getField(campaignUI, "screenPanel"));
+            findRenderableUIElementInterface(UtilReflection.getField(campaignUI, "screenPanel"));
         }
 
         if (confirmDialogClass != null

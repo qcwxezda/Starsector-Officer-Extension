@@ -6,7 +6,7 @@ import com.fs.starfarer.api.characters.SkillSpecAPI;
 import com.fs.starfarer.api.ui.LabelAPI;
 import com.fs.starfarer.api.util.Misc;
 import officerextension.Settings;
-import officerextension.Util;
+import officerextension.UtilReflection;
 import officerextension.ui.Button;
 import officerextension.ui.OfficerUIElement;
 import officerextension.ui.SkillButton;
@@ -82,7 +82,7 @@ public class ForgetSkills extends ActionListener {
         highlights.add("" + numStoryPoints);
         colors.add(numStoryPoints >= Settings.DEMOTE_OFFICER_SP_COST ? Misc.getStoryOptionColor() : Misc.getNegativeHighlightColor());
         ConfirmForgetSkills confirmListener = new ConfirmForgetSkills(uiElement);
-        Util.ConfirmDialogData data = Util.showConfirmationDialog(
+        UtilReflection.ConfirmDialogData data = UtilReflection.showConfirmationDialog(
                 confirmSB.toString(),
                 "Demote",
                 "Never mind",

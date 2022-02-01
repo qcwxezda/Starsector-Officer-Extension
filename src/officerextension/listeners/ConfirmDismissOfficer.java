@@ -4,8 +4,10 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FleetDataAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
-import officerextension.Util;
+import officerextension.ClassRefs;
 import officerextension.ui.OfficerUIElement;
+
+import java.lang.reflect.Method;
 
 public class ConfirmDismissOfficer extends DialogDismissedListener {
     private final OfficerUIElement uiElement;
@@ -29,9 +31,15 @@ public class ConfirmDismissOfficer extends DialogDismissedListener {
             fleetMember.setCaptain(null);
         }
         playerFleetData.removeOfficer(officerData.getPerson());
-        float scrollPosition = uiElement.getCaptainPickerDialog().getListOfficers().getScroller().getYOffset();
-        uiElement.getCaptainPickerDialog().sizeChanged(0f, 0f);
-        uiElement.getCaptainPickerDialog().getListOfficers().getScroller().setYOffset(scrollPosition);
-        Util.removeSuspendedOfficer(officerData);
+        uiElement.getInjector().updateNumOfficersLabel();
+        try {
+            Object officerList = uiElement.getCaptainPickerDialog().getListOfficers();
+            Method removeItem = officerList.getClass().getMethod("removeItem", ClassRefs.renderableUIElementInterface);
+            removeItem.invoke(officerList, uiElement.getInstance());
+            uiElement.getCaptainPickerDialog().getListOfficers().collapseEmptySlots(true);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

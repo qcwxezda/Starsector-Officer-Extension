@@ -2,7 +2,7 @@ package officerextension.ui;
 
 import com.fs.starfarer.api.characters.SkillSpecAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
-import officerextension.Util;
+import officerextension.UtilReflection;
 
 import java.lang.reflect.Field;
 
@@ -29,17 +29,17 @@ public class SkillButton extends Button {
     }
 
     public SkillSpecAPI getSkillSpec() {
-        Object tooltip = Util.invokeGetter(inner, "getTooltip");
+        Object tooltip = UtilReflection.invokeGetter(inner, "getTooltip");
         // Already know the field that retrieves the skill spec
         if (skillSpecField != null) {
-            skillSpec = (SkillSpecAPI) Util.getField(tooltip, skillSpecField);
+            skillSpec = (SkillSpecAPI) UtilReflection.getField(tooltip, skillSpecField);
         }
         // Have to search through all fields
         else {
             for (Field field : tooltip.getClass().getDeclaredFields()) {
                 if (SkillSpecAPI.class.isAssignableFrom(field.getType())) {
                     skillSpecField = field.getName();
-                    skillSpec = (SkillSpecAPI) Util.getField(tooltip, field.getName());
+                    skillSpec = (SkillSpecAPI) UtilReflection.getField(tooltip, field.getName());
                 }
             }
         }

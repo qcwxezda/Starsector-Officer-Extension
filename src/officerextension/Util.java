@@ -1,149 +1,96 @@
 package officerextension;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
-import com.fs.starfarer.api.ui.*;
-import officerextension.ui.Button;
-import officerextension.listeners.ActionListener;
-import officerextension.listeners.DialogDismissedListener;
-import java.util.ArrayList;
-import java.util.List;
+import com.fs.starfarer.api.util.Misc;
 
-import java.awt.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.*;
+import java.util.List;
 
 public class Util {
 
-    @SuppressWarnings("unchecked")
-    public static void addSuspendedOfficer(OfficerDataAPI officer) {
-        List<OfficerDataAPI> suspendedOfficers = (List<OfficerDataAPI>) Global.getSector().getPersistentData().get(Settings.SUSPENDED_OFFICERS_DATA_KEY);
-        if (suspendedOfficers == null) {
-            suspendedOfficers = new ArrayList<>();
-            Global.getSector().getPersistentData().put(Settings.SUSPENDED_OFFICERS_DATA_KEY, suspendedOfficers);
-        }
-        suspendedOfficers.add(officer);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void removeSuspendedOfficer(OfficerDataAPI officer) {
-        List<OfficerDataAPI> suspendedOfficers = (List<OfficerDataAPI>) Global.getSector().getPersistentData().get(Settings.SUSPENDED_OFFICERS_DATA_KEY);
-        if (suspendedOfficers == null) {
+    public static void updateOfficerTags(OfficerDataAPI officer, Set<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            officer.getPerson().getMemory().unset(Settings.OFFICER_TAGS_DATA_KEY);
             return;
         }
-        suspendedOfficers.remove(officer);
-        if (suspendedOfficers.isEmpty()) {
-            Global.getSector().getPersistentData().remove(Settings.SUSPENDED_OFFICERS_DATA_KEY);
+        // Remove tags containing only whitespace
+        Iterator<String> itr = tags.iterator();
+        while (itr.hasNext()) {
+            if (itr.next().matches("\\s*")) {
+                itr.remove();
+            }
         }
+        officer.getPerson().getMemory().set(Settings.OFFICER_TAGS_DATA_KEY, tags);
     }
 
     @SuppressWarnings("unchecked")
-    public static List<OfficerDataAPI> getSuspendedOfficers() {
-        if (!Global.getSector().getPersistentData().containsKey(Settings.SUSPENDED_OFFICERS_DATA_KEY)) {
-            return new ArrayList<>();
+    public static Set<String> getOfficerTags(OfficerDataAPI officer) {
+        Object tags = officer.getPerson().getMemory().get(Settings.OFFICER_TAGS_DATA_KEY);
+        return tags == null ? new HashSet<String>() : (Set<String>) tags;
+    }
+
+    public static Set<String> getAllTags() {
+        Set<String> allTags = new TreeSet<>();
+        for (OfficerDataAPI officer : Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy()) {
+            allTags.addAll(getOfficerTags(officer));
         }
-        return (List<OfficerDataAPI>) Global.getSector().getPersistentData().get(Settings.SUSPENDED_OFFICERS_DATA_KEY);
+        return allTags;
+    }
+
+    public static List<OfficerDataAPI> getSuspendedOfficers() {
+        List<OfficerDataAPI> suspended = new ArrayList<>();
+        for (OfficerDataAPI officer : Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy()) {
+            if (isSuspended(officer)) {
+                suspended.add(officer);
+            }
+        }
+        return suspended;
     }
 
     public static boolean isSuspended(OfficerDataAPI officer) {
-        if (!Global.getSector().getPersistentData().containsKey(Settings.SUSPENDED_OFFICERS_DATA_KEY)) {
+        // Safety check -- if [officer] is a mercenary, remove the tag and return [false]
+        // Can happen if the player reassigns an officer skill and selects to convert to mercenary
+        if (Misc.isMercenary(officer.getPerson())) {
+            officer.getPerson().removeTag(Settings.OFFICER_IS_SUSPENDED_KEY);
             return false;
         }
-        return ((List<?>) Global.getSector().getPersistentData().get(Settings.SUSPENDED_OFFICERS_DATA_KEY)).contains(officer);
+        return officer.getPerson().hasTag(Settings.OFFICER_IS_SUSPENDED_KEY);
     }
 
-    public static Button makeButton(String text, ActionListener handler, Color base, Color bg, float width, float height) {
-        CustomPanelAPI dummyPanel = Global.getSettings().createCustom(0f, 0f, null);
-        TooltipMakerAPI dummyTooltipMaker = dummyPanel.createUIElement(0f, 0f, false);
-        Button button = new Button(dummyTooltipMaker.addButton(text, null, base, bg, width, height, 0f));
-        button.setListener(handler);
-        return button;
+    public static void suspend(OfficerDataAPI officer) {
+        officer.getPerson().addTag(Settings.OFFICER_IS_SUSPENDED_KEY);
     }
 
-    public static class ConfirmDialogData {
-        public LabelAPI textLabel;
-        public Button confirmButton;
-        public Button cancelButton;
-
-        public ConfirmDialogData(LabelAPI label, Button yes, Button no) {
-            textLabel = label;
-            confirmButton = yes;
-            cancelButton = no;
-        }
+    public static void reinstate(OfficerDataAPI officer) {
+        officer.getPerson().removeTag(Settings.OFFICER_IS_SUSPENDED_KEY);
     }
 
-    /** Returns the LabelAPI for the text inside the confirmation dialog */
-    public static ConfirmDialogData showConfirmationDialog(
-            String text,
-            String confirmText,
-            String cancelText,
-            float width,
-            float height,
-            DialogDismissedListener dialogListener) {
-        try {
-            Constructor<?> cons = ClassRefs.confirmDialogClass
-                    .getConstructor(
-                            float.class,
-                            float.class,
-                            ClassRefs.uiPanelClass,
-                            ClassRefs.dialogDismissedInterface,
-                            String.class,
-                            String[].class);
-            Object confirmDialog = cons.newInstance(
-                    width,
-                    height,
-                    getField(Global.getSector().getCampaignUI(), "screenPanel"),
-                    dialogListener.getProxy(),
-                    text,
-                    new String[]{confirmText, cancelText}
-            );
-            Method show = confirmDialog.getClass().getMethod("show", float.class, float.class);
-            show.invoke(confirmDialog, 0.25f, 0.25f);
-            LabelAPI label = (LabelAPI) invokeGetter(confirmDialog, "getLabel");
-            Button yes = new Button((ButtonAPI) invokeGetter(confirmDialog, "getButton", 0));
-            Button no = new Button((ButtonAPI) invokeGetter(confirmDialog, "getButton", 1));
-            return new ConfirmDialogData(label, yes, no);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static Object getField(Object o, String fieldName) {
-        if (o == null) return null;
-        try {
-            Field field = o.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return field.get(o);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static Object invokeGetter(Object o, String methodName, Object... args) {
-        if (o == null) return null;
-        try {
-            Class<?>[] argClasses = new Class<?>[args.length];
-            for (int i = 0; i < args.length; i++) {
-                argClasses[i] = args[i].getClass();
-                // unbox
-                if (argClasses[i] == Integer.class) {
-                    argClasses[i] = int.class;
-                }
-                else if (argClasses[i] == Boolean.class) {
-                    argClasses[i] = boolean.class;
-                }
-                else if (argClasses[i] == Float.class) {
-                    argClasses[i] = float.class;
-                }
+    public static int countAssignedNonMercOfficers(CampaignFleetAPI fleet) {
+        int cnt = 0;
+        for (OfficerDataAPI officer : fleet.getFleetData().getOfficersCopy()) {
+            if (fleet.getFleetData().getMemberWithCaptain(officer.getPerson()) != null && !Misc.isMercenary(officer.getPerson())) {
+                cnt++;
             }
-            Method method = o.getClass().getMethod(methodName, argClasses);
-            return method.invoke(o, args);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
+        return cnt;
+    }
+
+    public static int countIdleOfficers(CampaignFleetAPI fleet) {
+        int cnt = 0;
+        for (OfficerDataAPI officer : fleet.getFleetData().getOfficersCopy()) {
+            if (isSuspended(officer)) {
+                continue;
+            }
+            if (fleet.getFleetData().getMemberWithCaptain(officer.getPerson()) == null) {
+                cnt++;
+            }
+        }
+        return cnt;
+    }
+
+    public static boolean isAssigned(OfficerDataAPI officer, CampaignFleetAPI fleet) {
+        return fleet.getFleetData().getMemberWithCaptain(officer.getPerson()) != null;
     }
 }

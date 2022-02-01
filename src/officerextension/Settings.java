@@ -13,8 +13,12 @@ public class Settings {
     public static boolean SHOW_COMMANDER_SKILLS;
     public static boolean SPLIT_COMMANDER_SKILLS;
 
+    /** Unused -- only used pre 0.4.0 */
     public static final String SUSPENDED_OFFICERS_DATA_KEY = "officerextension_SuspendedOfficers";
+
+    public static final String OFFICER_IS_SUSPENDED_KEY = "$officerextension_IsSuspended";
     public static final String SUSPENDED_OFFICERS_NODE = "node_id_suspended_officers";
+    public static final String OFFICER_TAGS_DATA_KEY = "$officerextension_OfficerTags";
 
     public static void load() {
         try {

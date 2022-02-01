@@ -8,19 +8,14 @@ import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Misc;
-import com.fs.starfarer.campaign.fleet.CampaignFleet;
-import com.fs.starfarer.campaign.fleet.FleetMember;
 import com.fs.starfarer.coreui.CaptainPickerDialog;
-import com.fs.starfarer.rpg.OfficerData;
-import officerextension.ui.Button;
-import officerextension.ui.CaptainPicker;
-import officerextension.ui.OfficerUIElement;
-import officerextension.ui.SkillButton;
-import officerextension.ui.Label;
+import officerextension.filter.OfficerFilter;
+import officerextension.ui.*;
 import officerextension.listeners.*;
+import officerextension.ui.Button;
+import officerextension.ui.Label;
 
 import java.awt.*;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -45,8 +40,20 @@ public class CoreScript implements EveryFrameScript {
      *  changes, that means the CaptainPicker has been recreated, and we need to re-inject
      *  every panel. */
     private UIPanelAPI officerListRef = null;
+    private CaptainPickerDialog cpdRef = null;
 
+    /** The injected "number of officers in fleet" label */
+    private Label numOfficersLabel = null;
     private boolean isFirstFrame = true;
+    private boolean injectedCurrentDialog = false;
+
+    private final FleetPanelInjector fleetPanelInjector;
+
+    private Set<OfficerFilter> activeFilters = new HashSet<>();
+
+    public CoreScript() {
+        fleetPanelInjector = new FleetPanelInjector();
+    }
 
     @Override
     public boolean isDone() {
@@ -60,7 +67,6 @@ public class CoreScript implements EveryFrameScript {
 
     @Override
     public void advance(float amount) {
-
         if (isFirstFrame) {
             // Since the core UI's "screenPanel" isn't created on the first frame, trying to do anything with the UI
             // on the first frame will cause an NPE. Therefore, we will initialize the screenPanel before trying
@@ -89,17 +95,20 @@ public class CoreScript implements EveryFrameScript {
             ClassRefs.findAllClasses();
         }
 
+        fleetPanelInjector.advance();
+
         CaptainPickerDialog cpd = findCaptainPickerDialog();
-        if (cpd == null) {
+        if (cpd == null || cpd != cpdRef) {
             // The existing dialog was closed,
             // and we have to inject every panel again
             officerPanelFirstChild.clear();
+            injectedCurrentDialog = false;
+            cpdRef = cpd;
             return;
         }
 
-        // Haven't grabbed the panels yet; do that
-        // and the initial injection
-        if (officerPanelFirstChild.isEmpty()) {
+        // Haven't injected the dialog yet; do that
+        if (!injectedCurrentDialog) {
             FleetDataAPI fleetData = Global.getSector().getPlayerFleet().getFleetData();
             // Populate the initial officer map for undoing purposes
             initialOfficerMap.clear();
@@ -107,6 +116,7 @@ public class CoreScript implements EveryFrameScript {
                 initialOfficerMap.put(fm, fm.getCaptain());
             }
             injectCaptainPickerDialog(cpd);
+            injectedCurrentDialog = true;
         }
         else {
             // If the officer list has changed, we need to re-inject every panel
@@ -123,32 +133,113 @@ public class CoreScript implements EveryFrameScript {
                 }
             }
         }
+
+        updateNumOfficersLabel();
     }
 
-    private void injectCaptainPickerDialog(CaptainPickerDialog cpd) {
+    public void injectCaptainPickerDialog(CaptainPickerDialog cpd) {
         officerListRef = cpd.getListOfficers();
         officerPanelFirstChild.clear();
         insertUndoButton(cpd);
-        insertSuspendedOfficers(cpd);
+        // AI cores can't have tags
+        if (!Misc.isAutomated(CaptainPicker.getFleetMember(cpd))) {
+            insertFilterButton(cpd);
+            insertClearFiltersButton(cpd);
+            injectNumOfficersLabel(cpd);
+            insertSortButton(cpd);
+            applyFilters(cpd);
+        }
         injectAll(cpd);
     }
 
+    /** Modifies the officers: x/y label of the dialog so that x is the number of
+     *  assigned officers rather than the total number of officers. */
+    private void injectNumOfficersLabel(CaptainPickerDialog cpd) {
+        LabelAPI numOfficersLabel = CaptainPicker.getNumOfficersLabel(cpd);
+        numOfficersLabel.setOpacity(0f);
+        Label temp = new Label(numOfficersLabel);
+        temp.removeTooltip();
+        Label newLabel = temp.createSmallInsigniaLabel("", Alignment.LMID);
+        newLabel.setHighlightOnMouseover(true);
+        this.numOfficersLabel = newLabel;
+        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        panel.add(newLabel).set(numOfficersLabel.getPosition());
+        updateNumOfficersLabel();
+    }
+
+    public void updateNumOfficersLabel() {
+        if (numOfficersLabel == null) {
+            return;
+        }
+
+        int numAssigned = Util.countAssignedNonMercOfficers(Global.getSector().getPlayerFleet());
+        int numMax = Misc.getMaxOfficers(Global.getSector().getPlayerFleet());
+        numOfficersLabel.getInstance().setText(String.format("Assigned: %s / %s", numAssigned, numMax));
+        numOfficersLabel.getInstance().setHighlight("Assigned:", "" + numAssigned, "/ " + numMax);
+        numOfficersLabel.getInstance().setHighlightColors(
+                Misc.getGrayColor(),
+                numAssigned >= numMax ? Misc.getNegativeHighlightColor() : Misc.getHighlightColor(),
+                Misc.getHighlightColor());
+    }
+
     private void insertUndoButton(CaptainPickerDialog cpd) {
-        UndoAssignments undoListener = new UndoAssignments(initialOfficerMap);
-        Button undoButton = Util.makeButton(
+        UndoAssignments undoListener = new UndoAssignments(initialOfficerMap, this);
+        Button undoButton = UtilReflection.makeButton(
                 "Undo assignments",
                 undoListener,
                 Misc.getBasePlayerColor(),
                 Misc.getDarkPlayerColor(),
-                200f,
+                150f,
                 25f);
-        try {
-            Method addMethod = cpd.getInnerPanel().getClass().getMethod("add", ClassRefs.renderableUIElementInterface);
-            ((PositionAPI) addMethod.invoke(cpd.getInnerPanel(), undoButton.getInstance())).inBMid(10f);
+        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        if (Misc.isAutomated(CaptainPicker.getFleetMember(cpd))) {
+            panel.add(undoButton).getInstance().inBL(10f, 10f);
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        else {
+            panel.add(undoButton).getInstance().inBMid(10f).setXAlignOffset(-250f);
         }
+    }
+
+    private void insertFilterButton(CaptainPickerDialog cpd) {
+        FilterOfficers filterListener = new FilterOfficers(cpd, this);
+        Button filterButton = UtilReflection.makeButton(
+                "Filter officers",
+                filterListener,
+                Misc.getBasePlayerColor(),
+                Misc.getDarkPlayerColor(),
+                120f,
+                25f
+        );
+        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        panel.add(filterButton).getInstance().inBMid(10f).setXAlignOffset(-100f);
+    }
+
+    private void insertClearFiltersButton(CaptainPickerDialog cpd) {
+        ClearFilters clearListener = new ClearFilters(cpd, this);
+        Button clearButton = UtilReflection.makeButton(
+                "Clear filters",
+                clearListener,
+                Misc.getBasePlayerColor(),
+                Misc.getDarkPlayerColor(),
+                120f,
+                25f
+        );
+        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        panel.add(clearButton).getInstance().inBMid(10f).setXAlignOffset(35f);
+    }
+
+    private void insertSortButton(CaptainPickerDialog cpd) {
+        SortOfficers sortListener = new SortOfficers(cpd, this);
+        Button sortButton = UtilReflection.makeButton(
+                "Sort officers",
+                sortListener,
+                Misc.getBasePlayerColor(),
+                Misc.getDarkPlayerColor(),
+                120f,
+                25f
+        );
+        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        panel.add(sortButton).getInstance().inBMid(10f).setXAlignOffset(170f);
     }
 
     /** Injects the custom behavior into all officer UI elements in the captain picker dialog list. */
@@ -156,7 +247,7 @@ public class CoreScript implements EveryFrameScript {
         List<?> officerUIList = cpd.getListOfficers().getItems();
         if (officerUIList != null) {
             for (Object o : officerUIList) {
-                inject(new OfficerUIElement(o));
+                inject(new OfficerUIElement(o, this));
             }
         }
     }
@@ -176,8 +267,21 @@ public class CoreScript implements EveryFrameScript {
         if (data.getPerson().isAICore()) {
             return;
         }
+
+        // Inject our own selection listener to the portrait and selector
+        AssignOfficer listener = new AssignOfficer(elem, elem.getPortrait().getListener());
+        elem.getPortrait().setListener(listener);
+        elem.getSelector().setListener(listener);
+        elem.getPortrait().setEnabled(true);
+        elem.getSelector().setEnabled(true);
+
+        // Set the *panel*'s (not the officer's!) local "isMercenary" tag to true
+        // this bypasses the per-frame isPastMax check
+        elem.setIsMercenary(true);
+
         // Mercenaries can't forget skills or be suspended
         if (Misc.isMercenary(data.getPerson())) {
+            insertEditTagsButton(elem);
             return;
         }
 
@@ -191,12 +295,8 @@ public class CoreScript implements EveryFrameScript {
             // Update the position if the new salary text is shorter than the old one
             float xDiff = label.computeTextWidth(oldSalaryText) - label.computeTextWidth(salaryText);
             // getXAlignOffset is not exposed in the API
-            float xAlignOffset = (float) Util.invokeGetter(label.getPosition(), "getXAlignOffset");
+            float xAlignOffset = (float) UtilReflection.invokeGetter(label.getPosition(), "getXAlignOffset");
             label.getPosition().setXAlignOffset(xAlignOffset + xDiff);
-
-            // Disable the selectors
-            elem.getSelector().setActive(false);
-            elem.getPortrait().setActive(false);
 
             // Disable the existing "Unassigned" and "personality, status" labels
             elem.getFleetMemberLabel().setText("");
@@ -205,37 +305,24 @@ public class CoreScript implements EveryFrameScript {
             // Add our own
             String personality = elem.getOfficerData().getPerson().getPersonalityAPI().getDisplayName();
             Label temp = new Label(elem.getStatusLabel());
-            LabelAPI suspendedLabel = temp.create("Suspended");
-            LabelAPI newStatusLabel = temp.create(personality + ", suspended");
-            suspendedLabel.setAlignment(Alignment.MID);
-            suspendedLabel.setHighlight("Suspended");
-            suspendedLabel.setHighlightColor(Misc.getNegativeHighlightColor());
-            newStatusLabel.setHighlight(personality + ",", "suspended");
-            newStatusLabel.setHighlightColors(Misc.getGrayColor(), Misc.getNegativeHighlightColor());
+            Label suspendedLabel = temp.create("Suspended");
+            Label newStatusLabel = temp.create(personality + ", suspended");
+            suspendedLabel.getInstance().setAlignment(Alignment.MID);
+            suspendedLabel.getInstance().setHighlight("Suspended");
+            suspendedLabel.getInstance().setHighlightColor(Misc.getNegativeHighlightColor());
+            newStatusLabel.getInstance().setHighlight(personality + ",", "suspended");
+            newStatusLabel.getInstance().setHighlightColors(Misc.getGrayColor(), Misc.getNegativeHighlightColor());
 
-            try {
-                Method addMethod = elem.getInstance().getClass().getMethod("add", ClassRefs.renderableUIElementInterface);
-                PositionAPI suspendedPosition = (PositionAPI) addMethod.invoke(elem.getInstance(), suspendedLabel);
-                PositionAPI statusPosition = (PositionAPI) addMethod.invoke(elem.getInstance(), newStatusLabel);
-                Method setMethod = statusPosition.getClass().getMethod("set", statusPosition.getClass());
-                setMethod.invoke(suspendedPosition, elem.getFleetMemberLabel().getPosition());
-                setMethod.invoke(statusPosition, elem.getStatusLabel().getPosition());
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
+            elem.add(suspendedLabel).set(elem.getFleetMemberLabel().getPosition());
+            elem.add(newStatusLabel).set(elem.getStatusLabel().getPosition());
         }
 
         injectSkillButtons(elem);
         insertForgetButton(elem);
         insertSuspendButton(elem);
         insertReinstateButton(elem);
+        insertEditTagsButton(elem);
 
-        // Reroute the dismiss button to our own listener that recreates the entire
-        // captain dialog when confirmed,
-        // both for consistency and so that the "reinstate button" for suspended officers
-        // can be correctly made visible when dismissing a different officer reduces the number of officers to
-        // below the maximum.
         elem.getDismissButton().setListener(new DismissOfficer(elem));
 
         elem.updateButtonVisibility();
@@ -295,87 +382,49 @@ public class CoreScript implements EveryFrameScript {
         );
     }
 
-    /** Adds the panels for suspended officers to the given captain picker dialog */
-    private void insertSuspendedOfficers(CaptainPickerDialog cpd) {
-        List<?> officerUIList = cpd.getListOfficers().getItems();
-        // Don't inject if the ship is automated and can't take human officers
-        if (Misc.isAutomated(CaptainPicker.getFleetMember(cpd))) {
-            return;
-        }
-        // Need one element in the UI list in order to get its class and constructor
-        if (officerUIList == null || officerUIList.isEmpty()) {
-            return;
-        }
-        int showBackgroundOffset = officerUIList.size() % 2 == 0 ? 1 : 0;
-        try {
-            Class<?> officerUIClass = officerUIList.get(0).getClass();
-            Constructor<?> cons = officerUIClass.getDeclaredConstructor(
-                    CaptainPickerDialog.class,
-                    CampaignFleet.class,
-                    FleetMember.class,
-                    OfficerData.class,
-                    boolean.class,
-                    boolean.class
+    /** Adds and overlays the "Edit tags" button to the left of the XP bar. */
+    private void insertEditTagsButton(OfficerUIElement elem) {
+            insertButtonAtPosition(
+                    elem,
+                    "Edit tags",
+                    Misc.getBasePlayerColor(),
+                    Misc.getDarkPlayerColor(),
+                    new EditTags(elem),
+                    75f,
+                    20f,
+                    470f,
+                    7f
             );
-            List<OfficerDataAPI> suspendedOfficers = Util.getSuspendedOfficers();
-            for (int i = 0; i < suspendedOfficers.size(); i++) {
-                OfficerDataAPI officer = suspendedOfficers.get(i);
-                // Constructor info: captain picker dialog, fleet, fleet member, officer, gray (true) or black (false) background, is AI
-                //noinspection JavaReflectionInvocation
-                Object panel = cons.newInstance(
-                        cpd,
-                        Global.getSector().getPlayerFleet(),
-                        null,
-                        officer,
-                        i % 2 != showBackgroundOffset,
-                        false);
-                Method addItem = cpd.getListOfficers()
-                        .getClass()
-                        .getMethod("addItem", ClassRefs.renderableUIElementInterface, Object.class);
-                addItem.invoke(cpd.getListOfficers(), panel, officer);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private Button insertButtonAtPosition(
+            OfficerUIElement elem,
+            String text,
+            Color base,
+            Color bg,
+            ActionListener listener,
+            float width,
+            float height,
+            float offsetX,
+            float offsetY) {
+        Button button = UtilReflection.makeButton(text, listener, base, bg, width, height);
+        new UIPanel(elem.getInstance()).add(button).getInstance().inTR(offsetX, offsetY);
+        return button;
     }
 
     /** Overlays the specified button on top of the "Level up!" button. */
     private Button insertButtonOnTopOfLevelUp(OfficerUIElement elem, String text, Color base, Color bg, ActionListener listener) {
-        try {
-            Method addMethod = elem.getInstance().getClass().getMethod("add", ClassRefs.renderableUIElementInterface);
-            Button button = Util.makeButton(
-                    text,
-                    listener,
-                    base,
-                    bg,
-                    100f,
-                    20f);
-            ((PositionAPI) addMethod.invoke(elem.getInstance(), button.getInstance())).inTR(110f, 7f);
-            return button;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return insertButtonAtPosition(elem, text, base, bg, listener, 100f, 20f,110f, 7f);
     }
 
     private CaptainPickerDialog findCaptainPickerDialog() {
-        CampaignUIAPI campaignUI = Global.getSector().getCampaignUI();
-
-        Object encounterDialog = Util.getField(campaignUI, "encounterDialog");
-
-        // If no encounter dialog, then search the core (opened fleet menu in space)
-        if (encounterDialog == null) {
-            CoreUIAPI core = (CoreUIAPI) Util.getField(campaignUI, "core");
-            List<?> children = (List<?>) Util.invokeGetter(core, "getChildrenNonCopy");
-            return findCaptainPickerDialogInList(children);
+        UIPanelAPI core = UtilReflection.getCoreUI();
+        if (core == null) {
+            return null;
         }
-        // Otherwise, search through the last item in the encounter dialog
-        else {
-            List<?> children = (List<?>) Util.invokeGetter(encounterDialog, "getChildrenNonCopy");
-            Object lastChild = children.get(children.size() - 1);
-            List<?> subChildren = (List<?>) Util.invokeGetter(lastChild, "getChildrenNonCopy");
-            return findCaptainPickerDialogInList(subChildren);
-        }
+        List<?> children = (List<?>) UtilReflection.invokeGetter(core, "getChildrenNonCopy");
+        return findCaptainPickerDialogInList(children);
     }
 
     private CaptainPickerDialog findCaptainPickerDialogInList(List<?> items) {
@@ -396,5 +445,52 @@ public class CoreScript implements EveryFrameScript {
             }
         }
         return null;
+    }
+
+    public void applyFilters(CaptainPickerDialog cpd) {
+        List<Object> filteredPanels = new ArrayList<>();
+
+        for (Object elem : cpd.getListOfficers().getItems()) {
+            OfficerDataAPI officerData = OfficerUIElement.getOfficerData(elem);
+            // Don't filter out the player ever
+            if (officerData.getPerson().isPlayer()) {
+                continue;
+            }
+            for (OfficerFilter filter : activeFilters) {
+                if (!filter.check(officerData)) {
+                    // Filter out this UI element
+                    filteredPanels.add(elem);
+                    break;
+                }
+            }
+        }
+
+        try {
+            for (Object o : filteredPanels) {
+                Method removeItem = cpd.getListOfficers().getClass().getMethod("removeItem", ClassRefs.renderableUIElementInterface);
+                removeItem.invoke(cpd.getListOfficers(), o);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        cpd.getListOfficers().collapseEmptySlots(true);
+    }
+
+    public void updateActiveFilters(Set<OfficerFilter> newFilters, CaptainPickerDialog cpd) {
+        if (activeFilters.isEmpty() && activeFilters.equals(newFilters)) {
+            return;
+        }
+        // We will re-filter if the filter list isn't empty, even if the parameters are the same
+        // this is because a player might edit an officer's tags in between filters
+        activeFilters = newFilters;
+        cpd.sizeChanged(0f, 0f);
+        cpd.getListOfficers().getScroller().setYOffset(0);
+        injectCaptainPickerDialog(cpd);
+    }
+
+    public Set<OfficerFilter> getActiveFilters() {
+        return activeFilters;
     }
 }

@@ -5,8 +5,8 @@ import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.ui.LabelAPI;
 import com.fs.starfarer.api.util.Misc;
 import officerextension.Settings;
-import officerextension.Util;
-import officerextension.Util.ConfirmDialogData;
+import officerextension.UtilReflection.ConfirmDialogData;
+import officerextension.UtilReflection;
 import officerextension.ui.Button;
 import officerextension.ui.OfficerUIElement;
 
@@ -29,14 +29,14 @@ public class SuspendOfficer extends ActionListener {
         String str = String.format("Are you sure you want to suspend %s (level %s)?" +
                 "\n\nSuspended officers receive %s of their usual pay." +
                 "\n\nSuspending this officer will incur an upfront fee of %s. " +
-                "Reinstating a suspended officer is free, as long as you have an empty space in your officer roster.",
+                "Reinstating a suspended officer is free and can be done at any time.",
                 name,
                 level,
                 salaryPercent,
                 suspendCost);
         boolean canAfford = Global.getSector().getPlayerFleet().getCargo().getCredits().get()
                 >= Settings.SUSPEND_OFFICER_COST_MULTIPLIER * Misc.getOfficerSalary(officer);
-        ConfirmDialogData data = Util.showConfirmationDialog(
+        ConfirmDialogData data = UtilReflection.showConfirmationDialog(
                 str,
                 "Suspend",
                 "Never mind",

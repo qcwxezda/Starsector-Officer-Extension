@@ -6,15 +6,19 @@ import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.util.Misc;
+import officerextension.CoreScript;
+import officerextension.Util;
 
 import java.util.Map;
 
 public class UndoAssignments extends ActionListener {
 
     private final Map<FleetMemberAPI, PersonAPI> officerMap;
+    private final CoreScript injector;
 
-    public UndoAssignments(Map<FleetMemberAPI, PersonAPI> officerMap) {
+    public UndoAssignments(Map<FleetMemberAPI, PersonAPI> officerMap, CoreScript injector) {
         this.officerMap = officerMap;
+        this.injector = injector;
     }
 
     @Override
@@ -32,20 +36,21 @@ public class UndoAssignments extends ActionListener {
                 failure = true;
                 continue;
             }
-            // If the tentative captain is unremovable, clear the current captain
+            // If the tentative captain is unav, clear the current captain
             // to avoid possible duplicate officer issues
             if (Misc.isUnremovable(tentativeCaptain)) {
-                fm.setCaptain(null);
+                fm.setCaptain(Global.getSettings().createPerson());
                 failure = true;
                 continue;
             }
             OfficerDataAPI officerData = fleetData.getOfficerData(tentativeCaptain);
-            // Have to distinguish between officers no longer in the fleet vs. unofficered ships
-            // Both will have [officerData = null], however, unofficered ships will have officers with no name
-            if (!"".equals(tentativeCaptain.getNameString())
+            // Have to distinguish between officers no longer in the fleet or suspended, vs. unofficered ships
+            if (!tentativeCaptain.isDefault()
                     && !tentativeCaptain.isAICore()
                     && !tentativeCaptain.isPlayer()
-                    && !fleetData.getOfficersCopy().contains(officerData)) {
+                    && (!fleetData.getOfficersCopy().contains(officerData)
+                        || Util.isSuspended(officerData))) {
+                fm.setCaptain(Global.getSettings().createPerson());
                 failure = true;
                 continue;
             }
@@ -57,5 +62,6 @@ public class UndoAssignments extends ActionListener {
         if (failure) {
             Global.getSector().getCampaignUI().getMessageDisplay().addMessage("Could not undo all assignments", Misc.getNegativeHighlightColor());
         }
+        injector.updateNumOfficersLabel();
     }
 }

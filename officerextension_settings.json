@@ -1,6 +1,6 @@
 {
   # Percentage of standard monthly salary that an officer is paid when suspended
-  "suspendedOfficerMonthlySalaryFraction": 0.25,
+  "suspendedOfficerMonthlySalaryFraction": 0.1,
 
   # Number of story points it costs to demote an officer
   "demoteOfficerSPCost": 1,
@@ -9,7 +9,7 @@
   "demoteOfficerBonusXPFraction": 1,
 
   # Fee to suspended an officer, as a multiplier on top of their salary
-  "suspendOfficerCostMultiplier": 6,
+  "suspendOfficerCostMultiplier": 12,
 
   # Fraction of bonus XP granted when officers forget elite skills
   "forgetEliteSkillBonusXPFraction": 0,

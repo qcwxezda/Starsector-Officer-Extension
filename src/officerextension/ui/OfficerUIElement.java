@@ -1,133 +1,140 @@
 package officerextension.ui;
 
-import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.LabelAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.coreui.CaptainPickerDialog;
+import officerextension.CoreScript;
 import officerextension.Util;
+import officerextension.UtilReflection;
 
 import java.lang.reflect.*;
 import java.util.List;
 
 /** This is the UI element for a single officer
  *  in the officer selection screen. */
-public class OfficerUIElement extends RenderableUIElement {
+public class OfficerUIElement extends UIPanel {
 
     private Button forgetSkillsButton;
     private Button suspendButton;
     private Button reinstateButton;
     private List<SkillButton> wrappedSkillButtons;
+    private final CoreScript injector;
 
     private static String skillButtonsFieldName;
     private static String levelUpButtonFieldName;
     private static String captainPickerDialogFieldName;
     private static String fleetMemberLabelFieldName;
+    private static String selectedFleetMemberFieldName;
     private static String statusLabelFieldName;
     private static String dismissButtonFieldName;
+    private static String isMercFieldName;
 
     /** [o] should be an instance of the underlying obfuscated officer's UI panel */
-    public OfficerUIElement(Object o) {
+    public OfficerUIElement(Object o, CoreScript injector) {
         super(o);
+        this.injector = injector;
     }
 
     public OfficerDataAPI getOfficerData() {
-        return (OfficerDataAPI) Util.invokeGetter(inner, "getOfficerData");
+        return (OfficerDataAPI) UtilReflection.invokeGetter(inner, "getOfficerData");
     }
 
-    public Object getInstance() {
-        return inner;
+    /** [o] should be an instance of the underlying obfuscated officer's UI panel */
+    public static OfficerDataAPI getOfficerData(Object o) {
+        return (OfficerDataAPI) UtilReflection.invokeGetter(o, "getOfficerData");
     }
 
     public Button getLevelUpButton() {
         if (levelUpButtonFieldName == null) {
             levelUpButtonFieldName = findButtonFieldByText("Level up!").getName();
         }
-        return new Button((ButtonAPI) Util.getField(inner, levelUpButtonFieldName));
+        return new Button((ButtonAPI) UtilReflection.getField(inner, levelUpButtonFieldName));
     }
 
     public Button getDismissButton() {
         if (dismissButtonFieldName == null) {
             dismissButtonFieldName = findButtonFieldByText("Dismiss").getName();
         }
-        return new Button((ButtonAPI) Util.getField(inner, dismissButtonFieldName));
+        return new Button((ButtonAPI) UtilReflection.getField(inner, dismissButtonFieldName));
     }
 
-//    /** Will throw NPE if [forgetSkillsButton] hasn't been set */
-//    public Button getLevelUpButton() {
-//        if (levelUpButtonFieldName != null) {
-//            return new Button((ButtonAPI) Util.getField(inner, levelUpButtonFieldName));
-//        }
-//        // Not memoized, have to search through every field
-//        Field[] fields = inner.getClass().getDeclaredFields();
-//        float minDist = Float.MAX_VALUE;
-//        Field levelUpField = null;
-//        for (Field field : fields) {
-//            if (ButtonAPI.class.isAssignableFrom(field.getType())) {
-//                // Check the position to see if it's at the right position
-//                // We'll pick the field with the minimum (Manhattan) distance from the "forget..." button
-//                // and assume that's the level up button
-//                ButtonAPI button = (ButtonAPI) Util.getField(inner, field.getName());
-//                if (button != null) {
-//                    float buttonX = button.getPosition().getX();
-//                    float buttonY = button.getPosition().getY();
-//                    Button forgetButton = getForgetSkillsButton();
-//                    float fButtonX = forgetButton.getPosition().getX();
-//                    float fButtonY = forgetButton.getPosition().getY();
-//                    float dist = Math.abs(fButtonX - buttonX) + Math.abs(fButtonY - buttonY);
-//                    if (dist < minDist) {
-//                        minDist = dist;
-//                        levelUpField = field;
-//                    }
-//                }
-//            }
-//        }
-//        if (levelUpField == null) {
-//            throw new RuntimeException("Could not find the \"Level up!\" button");
-//        }
-//        levelUpButtonFieldName = levelUpField.getName();
-//        return new Button((ButtonAPI) Util.getField(inner, levelUpField.getName()));
-//    }
-//
-//    /** Will throw NPE if [forgetSkillsButton] or [levelUpButtonFieldName] hasn't been set */
-//    public Button getDismissButton() {
-//        if (dismissButtonFieldName != null) {
-//            return new Button((ButtonAPI) Util.getField(inner, dismissButtonFieldName));
-//        }
-//        // Not memoized, have to search through every field
-//        Field[] fields = inner.getClass().getDeclaredFields();
-//        float minDist = Float.MAX_VALUE;
-//        Field dismissField = null;
-//        for (Field field : fields) {
-//            if (ButtonAPI.class.isAssignableFrom(field.getType())) {
-//                // Check the position to see if it's at the right position
-//                // We'll pick the field with the minimum y-distance from the "forget..." button
-//                // that isn't the level up button, and assume that that's the dismiss button
-//                ButtonAPI button = (ButtonAPI) Util.getField(inner, field.getName());
-//                if (button != null && !field.getName().equals(levelUpButtonFieldName)) {
-//                    Button forgetButton = getForgetSkillsButton();
-//                    float dist = Math.abs(forgetButton.getPosition().getY() - button.getPosition().getY());
-//                    if (dist < minDist) {
-//                        minDist = dist;
-//                        dismissField = field;
-//                    }
-//                }
-//            }
-//        }
-//        if (dismissField == null) {
-//            throw new RuntimeException("Could not find the \"Dismiss\" button");
-//        }
-//        dismissButtonFieldName = dismissField.getName();
-//        return new Button((ButtonAPI) Util.getField(inner, dismissField.getName()));
-//    }
+/*
+    /** Will throw NPE if [forgetSkillsButton] hasn't been set * /
+    public Button getLevelUpButton() {
+        if (levelUpButtonFieldName != null) {
+            return new Button((ButtonAPI) Util.getField(inner, levelUpButtonFieldName));
+        }
+        // Not memoized, have to search through every field
+        Field[] fields = inner.getClass().getDeclaredFields();
+        float minDist = Float.MAX_VALUE;
+        Field levelUpField = null;
+        for (Field field : fields) {
+            if (ButtonAPI.class.isAssignableFrom(field.getType())) {
+                // Check the position to see if it's at the right position
+                // We'll pick the field with the minimum (Manhattan) distance from the "forget..." button
+                // and assume that's the level up button
+                ButtonAPI button = (ButtonAPI) Util.getField(inner, field.getName());
+                if (button != null) {
+                    float buttonX = button.getPosition().getX();
+                    float buttonY = button.getPosition().getY();
+                    Button forgetButton = getForgetSkillsButton();
+                    float fButtonX = forgetButton.getPosition().getX();
+                    float fButtonY = forgetButton.getPosition().getY();
+                    float dist = Math.abs(fButtonX - buttonX) + Math.abs(fButtonY - buttonY);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        levelUpField = field;
+                    }
+                }
+            }
+        }
+        if (levelUpField == null) {
+            throw new RuntimeException("Could not find the \"Level up!\" button");
+        }
+        levelUpButtonFieldName = levelUpField.getName();
+        return new Button((ButtonAPI) Util.getField(inner, levelUpField.getName()));
+    }
+
+    /** Will throw NPE if [forgetSkillsButton] or [levelUpButtonFieldName] hasn't been set * /
+    public Button getDismissButton() {
+        if (dismissButtonFieldName != null) {
+            return new Button((ButtonAPI) Util.getField(inner, dismissButtonFieldName));
+        }
+        // Not memoized, have to search through every field
+        Field[] fields = inner.getClass().getDeclaredFields();
+        float minDist = Float.MAX_VALUE;
+        Field dismissField = null;
+        for (Field field : fields) {
+            if (ButtonAPI.class.isAssignableFrom(field.getType())) {
+                // Check the position to see if it's at the right position
+                // We'll pick the field with the minimum y-distance from the "forget..." button
+                // that isn't the level up button, and assume that that's the dismiss button
+                ButtonAPI button = (ButtonAPI) Util.getField(inner, field.getName());
+                if (button != null && !field.getName().equals(levelUpButtonFieldName)) {
+                    Button forgetButton = getForgetSkillsButton();
+                    float dist = Math.abs(forgetButton.getPosition().getY() - button.getPosition().getY());
+                    if (dist < minDist) {
+                        minDist = dist;
+                        dismissField = field;
+                    }
+                }
+            }
+        }
+        if (dismissField == null) {
+            throw new RuntimeException("Could not find the \"Dismiss\" button");
+        }
+        dismissButtonFieldName = dismissField.getName();
+        return new Button((ButtonAPI) Util.getField(inner, dismissField.getName()));
+    }
+*/
 
     private Field findButtonFieldByText(String text) {
         for (Field field : inner.getClass().getDeclaredFields()) {
             if (ButtonAPI.class.isAssignableFrom(field.getType())) {
-                Button button = new Button((ButtonAPI) Util.getField(inner, field.getName()));
+                Button button = new Button((ButtonAPI) UtilReflection.getField(inner, field.getName()));
                 if (text.equals(button.getText())) {
                     return field;
                 }
@@ -165,7 +172,7 @@ public class OfficerUIElement extends RenderableUIElement {
     }
 
     public LabelAPI getSalaryLabel() {
-        List<?> children = (List<?>) Util.invokeGetter(inner, "getChildrenNonCopy");
+        List<?> children = (List<?>) UtilReflection.invokeGetter(inner, "getChildrenNonCopy");
         for (Object o : children) {
             if (o instanceof LabelAPI && ((LabelAPI) o).getText().startsWith("Monthly salary")) {
                 return (LabelAPI) o;
@@ -178,7 +185,7 @@ public class OfficerUIElement extends RenderableUIElement {
     @SuppressWarnings("unchecked")
     public List<ButtonAPI> getSkillButtons() {
         if (skillButtonsFieldName != null) {
-            return (List<ButtonAPI>) Util.getField(inner, skillButtonsFieldName);
+            return (List<ButtonAPI>) UtilReflection.getField(inner, skillButtonsFieldName);
         }
         // Search through the fields to find one with type List<ButtonAPI>
         // there should only be one
@@ -191,7 +198,7 @@ public class OfficerUIElement extends RenderableUIElement {
                     if (argType instanceof Class && ButtonAPI.class.isAssignableFrom((Class<?>) argType)) {
                         // Found the right field
                         skillButtonsFieldName = field.getName();
-                        return (List<ButtonAPI>) Util.getField(inner, field.getName());
+                        return (List<ButtonAPI>) UtilReflection.getField(inner, field.getName());
                     }
                 }
             }
@@ -200,28 +207,44 @@ public class OfficerUIElement extends RenderableUIElement {
     }
 
     public Button getPortrait() {
-        return new Button((ButtonAPI) Util.invokeGetter(inner, "getPortrait"));
+        return new Button((ButtonAPI) UtilReflection.invokeGetter(inner, "getPortrait"));
     }
 
     public Button getSelector() {
-        return new Button((ButtonAPI) Util.invokeGetter(inner, "getSelector"));
+        return new Button((ButtonAPI) UtilReflection.invokeGetter(inner, "getSelector"));
+    }
+
+    public FleetMemberAPI getFleetMember() {
+        if (selectedFleetMemberFieldName == null) {
+            for (Field field : inner.getClass().getDeclaredFields()) {
+                if (FleetMemberAPI.class.isAssignableFrom(field.getType())) {
+                    selectedFleetMemberFieldName = field.getName();
+                }
+            }
+        }
+
+        if (selectedFleetMemberFieldName == null) {
+            throw new RuntimeException("Couldn't find the officer panel's selected fleet member field");
+        }
+
+        return (FleetMemberAPI) UtilReflection.getField(inner, selectedFleetMemberFieldName);
     }
 
     public LabelAPI getFleetMemberLabel() {
         if (fleetMemberLabelFieldName != null) {
-            return (LabelAPI) Util.getField(inner, fleetMemberLabelFieldName);
+            return (LabelAPI) UtilReflection.getField(inner, fleetMemberLabelFieldName);
         }
         // Search through the fields to find one with the method "getText"
         // This should always say "unassigned"
         for (Field field : inner.getClass().getDeclaredFields()) {
-            Object value = Util.getField(inner, field.getName());
+            Object value = UtilReflection.getField(inner, field.getName());
             if (value != null) {
                 try {
                     Method getText = value.getClass().getMethod("getText");
                     String text = (String) getText.invoke(value);
                     if ("Unassigned".equals(text)) {
                         fleetMemberLabelFieldName = field.getName();
-                        return (LabelAPI) Util.getField(inner, field.getName());
+                        return (LabelAPI) UtilReflection.getField(inner, field.getName());
                     }
                 } catch (Exception e) {
                     // Do nothing -- move on to the next field
@@ -233,20 +256,20 @@ public class OfficerUIElement extends RenderableUIElement {
 
     public LabelAPI getStatusLabel() {
         if (statusLabelFieldName != null) {
-            return (LabelAPI) Util.getField(inner, statusLabelFieldName);
+            return (LabelAPI) UtilReflection.getField(inner, statusLabelFieldName);
         }
         // Search through the fields to find one with the method "getText"
         // This should always start with the officer's personality
         String personality = getOfficerData().getPerson().getPersonalityAPI().getDisplayName();
         for (Field field : inner.getClass().getDeclaredFields()) {
-            Object value = Util.getField(inner, field.getName());
+            Object value = UtilReflection.getField(inner, field.getName());
             if (value != null) {
                 try {
                     Method getText = value.getClass().getMethod("getText");
                     String text = (String) getText.invoke(value);
                     if (text.startsWith(personality)) {
                         statusLabelFieldName = field.getName();
-                        return (LabelAPI) Util.getField(inner, field.getName());
+                        return (LabelAPI) UtilReflection.getField(inner, field.getName());
                     }
                 } catch (Exception e) {
                     // Do nothing -- move on to the next field
@@ -258,7 +281,7 @@ public class OfficerUIElement extends RenderableUIElement {
 
     public CaptainPickerDialog getCaptainPickerDialog() {
         if (captainPickerDialogFieldName != null) {
-            return (CaptainPickerDialog) Util.getField(inner, captainPickerDialogFieldName);
+            return (CaptainPickerDialog) UtilReflection.getField(inner, captainPickerDialogFieldName);
         }
         // Search through the fields to find one with type CaptainPicker
         // there should only be one
@@ -266,7 +289,7 @@ public class OfficerUIElement extends RenderableUIElement {
         for (Field field : fields) {
             if (CaptainPickerDialog.class.isAssignableFrom(field.getType())) {
                 captainPickerDialogFieldName = field.getName();
-                return (CaptainPickerDialog) Util.getField(inner, field.getName());
+                return (CaptainPickerDialog) UtilReflection.getField(inner, field.getName());
             }
         }
         throw new RuntimeException("Field for parent captain selection dialog not found");
@@ -274,7 +297,7 @@ public class OfficerUIElement extends RenderableUIElement {
 
     @SuppressWarnings("unchecked")
     public List<UIComponentAPI> getChildrenNonCopy() {
-        return (List<UIComponentAPI>) Util.invokeGetter(inner, "getChildrenNonCopy");
+        return (List<UIComponentAPI>) UtilReflection.invokeGetter(inner, "getChildrenNonCopy");
     }
 
     /** The rules for which button is visible in the "Level up!" button slot is as follows:
@@ -311,10 +334,6 @@ public class OfficerUIElement extends RenderableUIElement {
             getForgetSkillsButton().setOpacity(0f);
             getSuspendButton().setOpacity(0f);
             getReinstateButton().setOpacity(1f);
-            // reinstate button is enabled iff the reinstating the officer would not make the player go past the limit
-            CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
-            getReinstateButton().setEnabled(
-                    Misc.getMaxOfficers(playerFleet) > Misc.getNumNonMercOfficers(playerFleet));
         }
         else {
             getLevelUpButton().setOpacity(0f);
@@ -324,11 +343,52 @@ public class OfficerUIElement extends RenderableUIElement {
         }
     }
 
+    /** Sets this panel's "is mercenary" check to [true]. Has no effect on the underlying officer. */
+    public void setIsMercenary(boolean value) {
+
+        if (isMercFieldName != null) {
+            UtilReflection.setField(inner, isMercFieldName, true);
+        }
+
+        // There are many boolean fields, we will test every one to check if it changes the "isMerc" method
+        try {
+            Method isMerc = inner.getClass().getDeclaredMethod("isMerc");
+            boolean cur = (boolean) isMerc.invoke(inner);
+
+            for (Field field : inner.getClass().getDeclaredFields()) {
+                if (field.getType() == boolean.class) {
+                    field.setAccessible(true);
+                    boolean restore = (boolean) field.get(inner);
+                    field.set(inner, !cur);
+                    // Did this have an effect?
+                    if ((boolean) isMerc.invoke(inner) != cur) {
+                        // We found the field!
+                        isMercFieldName = field.getName();
+                        field.set(inner, value);
+                        break;
+                    }
+                    field.set(inner, restore);
+                }
+            }
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Could not find the officer panel's internal \"is mercenary\" field", e);
+        }
+    }
+
+    public CoreScript getInjector() {
+        return injector;
+    }
+
     /** Refreshes this officer's panel. Creates new instances of each button, so will need to inject again
      *  whenever the recreate method is called, here or in the obfuscated game code. */
     public void recreate() {
         try {
             inner.getClass().getMethod("recreate").invoke(inner);
+            injector.updateNumOfficersLabel();
+            setIsMercenary(true);
+            getSelector().setEnabled(true);
+            getPortrait().setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
         }
