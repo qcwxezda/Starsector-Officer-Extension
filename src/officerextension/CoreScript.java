@@ -6,6 +6,8 @@ import com.fs.starfarer.api.campaign.*;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
+import com.fs.starfarer.api.plugins.OfficerLevelupPlugin;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.coreui.CaptainPickerDialog;
@@ -285,6 +287,18 @@ public class CoreScript implements EveryFrameScript {
         if (Misc.isMercenary(data.getPerson())) {
             insertEditTagsButton(elem);
             return;
+        }
+
+        // Undo the weird behavior with exceptional cryopod officers where they only have
+        // the "retrain" option regardless of their level
+        PersonAPI officerPerson = elem.getOfficerData().getPerson();
+        if (officerPerson.getMemory().getBoolean(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
+            OfficerLevelupPlugin levelUpPlugin = (OfficerLevelupPlugin) Global.getSettings().getPlugin("officerLevelUp");
+            // If fewer than 5 elite skills, change the retrain button to make skills elite
+            if (Misc.getNumEliteSkills(officerPerson) < levelUpPlugin.getMaxEliteSkills(officerPerson)) {
+                elem.getRetrainButton().setOpacity(0f);
+                elem.getMakeSkillsEliteButton().setOpacity(1f);
+            }
         }
 
         if (Util.isSuspended(data)) {

@@ -25,6 +25,8 @@ public class OfficerUIElement extends UIPanel {
 
     private static String skillButtonsFieldName;
     private static String levelUpButtonFieldName;
+    private static String makeSkillsEliteButtonFieldName;
+    private static String retrainButtonFieldName;
     private static String captainPickerDialogFieldName;
     private static String fleetMemberLabelFieldName;
     private static String selectedFleetMemberFieldName;
@@ -52,6 +54,20 @@ public class OfficerUIElement extends UIPanel {
             levelUpButtonFieldName = findButtonFieldByText("Level up!").getName();
         }
         return new Button((ButtonAPI) UtilReflection.getField(inner, levelUpButtonFieldName));
+    }
+
+    public Button getRetrainButton() {
+        if (retrainButtonFieldName == null) {
+            retrainButtonFieldName = findButtonFieldByText("Retrain...").getName();
+        }
+        return new Button((ButtonAPI) UtilReflection.getField(inner, retrainButtonFieldName));
+    }
+
+    public Button getMakeSkillsEliteButton() {
+        if (makeSkillsEliteButtonFieldName == null) {
+            makeSkillsEliteButtonFieldName = findButtonFieldByText("Make skills elite...").getName();
+        }
+        return new Button((ButtonAPI) UtilReflection.getField(inner, makeSkillsEliteButtonFieldName));
     }
 
     public Button getDismissButton() {
