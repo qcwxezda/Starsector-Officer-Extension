@@ -2,7 +2,7 @@
   "id": "officerExtension",
   "name": "Officer Extension",
   "author": "qcwxezda",
-  "version": {"major":0, "minor":3, "patch":1},
+  "version": {"major":0, "minor":4, "patch":0},
   "dependencies": [],
   "utility": true,
   "description": "Allows officers to be suspended and reinstated; suspended officers do not occupy an officer slot but still demand a reduced monthly salary. Also allows demoting of officers for a story point cost, causing them to forget selected skills. \n\nDisplays the opposing side's commander's skills upon fleet interaction.",
