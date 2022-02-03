@@ -4,11 +4,36 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.util.Misc;
+import officerextension.filter.PersonalityFilter;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.*;
 import java.util.List;
 
 public class Util {
+
+    public static final List<PersonalityFilter> personalityFilters = new ArrayList<>();
+    /** Map from skill aptitudes to their elite icons */
+    public static final Map<String, String> eliteIcons = new HashMap<>();
+
+    static {
+        personalityFilters.add(new PersonalityFilter("timid", "Timid"));
+        personalityFilters.add(new PersonalityFilter("cautious", "Cautious"));
+        personalityFilters.add(new PersonalityFilter("steady", "Steady"));
+        personalityFilters.add(new PersonalityFilter("aggressive", "Aggressive"));
+        personalityFilters.add(new PersonalityFilter("reckless", "Reckless"));
+
+        try {
+            JSONArray array = Global.getSettings().loadCSV("data/characters/skills/aptitude_data.csv");
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject json = array.getJSONObject(i);
+                eliteIcons.put(json.getString("id"), json.optString("elite_overlay", null));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load data/characters/skills/aptitude_data.csv from the base game");
+        }
+    }
 
     public static void updateOfficerTags(OfficerDataAPI officer, Set<String> tags) {
         if (tags == null || tags.isEmpty()) {

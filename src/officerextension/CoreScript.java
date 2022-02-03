@@ -51,7 +51,8 @@ public class CoreScript implements EveryFrameScript {
 
     private final FleetPanelInjector fleetPanelInjector;
 
-    private Set<OfficerFilter> activeFilters = new HashSet<>();
+    /** Really a set, but we map filters to themselves in order to enable "get" */
+    private final Map<OfficerFilter, OfficerFilter> activeFilters = new HashMap<>();
 
     public CoreScript() {
         fleetPanelInjector = new FleetPanelInjector();
@@ -472,7 +473,7 @@ public class CoreScript implements EveryFrameScript {
             if (officerData.getPerson().isPlayer()) {
                 continue;
             }
-            for (OfficerFilter filter : activeFilters) {
+            for (OfficerFilter filter : activeFilters.values()) {
                 if (!filter.check(officerData)) {
                     // Filter out this UI element
                     filteredPanels.add(elem);
@@ -495,18 +496,21 @@ public class CoreScript implements EveryFrameScript {
     }
 
     public void updateActiveFilters(Set<OfficerFilter> newFilters, CaptainPickerDialog cpd) {
-        if (activeFilters.isEmpty() && activeFilters.equals(newFilters)) {
+        if (activeFilters.isEmpty() && activeFilters.values().equals(newFilters)) {
             return;
         }
         // We will re-filter if the filter list isn't empty, even if the parameters are the same
         // this is because a player might edit an officer's tags in between filters
-        activeFilters = newFilters;
+        activeFilters.clear();
+        for (OfficerFilter filter : newFilters) {
+            activeFilters.put(filter, filter);
+        }
         cpd.sizeChanged(0f, 0f);
         cpd.getListOfficers().getScroller().setYOffset(0);
         injectCaptainPickerDialog(cpd);
     }
 
-    public Set<OfficerFilter> getActiveFilters() {
+    public Map<OfficerFilter, OfficerFilter> getActiveFilters() {
         return activeFilters;
     }
 }

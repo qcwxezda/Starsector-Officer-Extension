@@ -1,31 +1,30 @@
 package officerextension.filter;
 
 import com.fs.starfarer.api.characters.OfficerDataAPI;
-import officerextension.Util;
 
-public class TagFilter implements OfficerFilter {
+public abstract class TagFilter implements OfficerFilter {
 
-    private final String tagName;
-
-    public TagFilter(String tagName) {
-        this.tagName = tagName;
-    }
+    protected String tagName;
 
     @Override
-    public boolean check(OfficerDataAPI officer) {
-        return Util.getOfficerTags(officer).contains(tagName);
-    }
+    public abstract boolean check(OfficerDataAPI officer);
 
+    /** InnateTagFilters and CustomTagFilters should not be equal. */
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof TagFilter)) {
+        if (o == null) {
+            return false;
+        }
+        if (getClass() != o.getClass()) {
             return false;
         }
         return ((TagFilter) o).tagName.equals(tagName);
     }
 
+    /** InnateTagFilters and CustomTagFilters should not be equal. */
     @Override
     public int hashCode() {
-        return tagName.hashCode();
+        return tagName.hashCode() + getClass().hashCode();
     }
 }
+
