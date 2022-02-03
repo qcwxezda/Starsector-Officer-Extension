@@ -63,6 +63,11 @@ public class SortOfficers extends ActionListener {
                         if (!l1.equals(l2)) {
                             return l2.compareTo(l1);
                         }
+                        Integer e1 = Misc.getNumEliteSkills(o1.getPerson());
+                        Integer e2 = Misc.getNumEliteSkills(o2.getPerson());
+                        if (!e1.equals(e2)) {
+                            return e2.compareTo(e1);
+                        }
                         return o1.getPerson().getNameString().compareTo(o2.getPerson().getNameString());
                     }
                 }
