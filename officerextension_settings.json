@@ -19,5 +19,12 @@
 
   # Whether to show two skill panels, one for personal skills and another for fleet-wide skills
   # Has no effect if "shouldShowFleetCommanderSkills" is disabled.
-  "shouldSplitFleetCommanderSkills": true
+  "shouldSplitFleetCommanderSkills": true,
+
+  # Persistent custom tags for filtering officers
+  # These will always show up as filter options and in the "edit tags" interface
+  # before any other custom tags
+  "officerFilterPersistentTags": [
+      # Example list: "low tech", "midline", "high tech", "wolfpack"
+  ]
 }

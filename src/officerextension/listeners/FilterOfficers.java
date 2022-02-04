@@ -11,14 +11,17 @@ import com.fs.starfarer.loading.SkillSpec;
 import com.fs.starfarer.ui.impl.StandardTooltipV2;
 import com.fs.starfarer.ui.impl.StandardTooltipV2Expandable;
 import officerextension.CoreScript;
+import officerextension.Settings;
 import officerextension.Util;
 import officerextension.UtilReflection;
 import officerextension.filter.*;
 import officerextension.ui.Button;
 
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.List;
 
 public class FilterOfficers extends ActionListener {
 
@@ -204,12 +207,15 @@ public class FilterOfficers extends ActionListener {
         // Custom tags
         Set<String> allTags = Util.getAllTags();
         for (String str : allTags) {
+            Color textColor = Settings.PERSISTENT_OFFICER_TAGS.contains(str)
+                    ? Color.WHITE
+                    : Misc.getBrightPlayerColor();
             ButtonAPI button = tagMaker.addAreaCheckbox(
                     str,
                     null,
                     Misc.getBasePlayerColor(),
                     Misc.getDarkPlayerColor(),
-                    Misc.getBrightPlayerColor(),
+                    textColor,
                     260f,
                     30f,
                     10f);

@@ -3,12 +3,14 @@ package officerextension.listeners;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Misc;
+import officerextension.Settings;
 import officerextension.Util;
 import officerextension.UtilReflection.ConfirmDialogData;
 import officerextension.UtilReflection;
 import officerextension.ui.Button;
 import officerextension.ui.OfficerUIElement;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,12 +41,15 @@ public class EditTags extends ActionListener {
         Map<String, ButtonAPI> buttonMap = new HashMap<>();
         boolean shouldPad = false;
         for (String str : allTags) {
+            Color textColor = Settings.PERSISTENT_OFFICER_TAGS.contains(str)
+                    ? Color.WHITE
+                    : Misc.getBrightPlayerColor();
             ButtonAPI button = buttonsList.addAreaCheckbox(
                     str,
                     null,
                     Misc.getBasePlayerColor(),
                     Misc.getDarkPlayerColor(),
-                    Misc.getBrightPlayerColor(),
+                    textColor,
                     BUTTON_WIDTH,
                     BUTTON_HEIGHT,
                     shouldPad ? BUTTON_PAD : 0);

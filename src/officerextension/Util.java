@@ -61,7 +61,21 @@ public class Util {
     }
 
     public static Set<String> getAllTags() {
-        Set<String> allTags = new TreeSet<>();
+        Set<String> allTags = new TreeSet<>(new Comparator<String>() {
+            @Override
+            public int compare(String s1, String s2) {
+                boolean b1 = Settings.PERSISTENT_OFFICER_TAGS.contains(s1);
+                boolean b2 = Settings.PERSISTENT_OFFICER_TAGS.contains(s2);
+                if (b1 && !b2) {
+                    return -1;
+                }
+                if (!b1 && b2) {
+                    return 1;
+                }
+                return s1.compareTo(s2);
+            }
+        });
+        allTags.addAll(Settings.PERSISTENT_OFFICER_TAGS);
         for (OfficerDataAPI officer : Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy()) {
             allTags.addAll(getOfficerTags(officer));
         }
