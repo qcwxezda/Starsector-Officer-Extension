@@ -57,6 +57,7 @@ public class AddTagButtonListener extends ActionListener {
         String text = textField.getText().toLowerCase(Locale.ROOT).trim();
 
         if ("".equals(text)) {
+            textField.setText("");
             return;
         }
 
