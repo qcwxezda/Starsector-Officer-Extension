@@ -1,21 +1,20 @@
 package officerextension.listeners;
 
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.TextFieldAPI;
 import officerextension.Util;
 import officerextension.ui.OfficerUIElement;
 
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.TreeSet;
+import java.util.*;
 
 public class ConfirmEditTags extends DialogDismissedListener {
 
     private final OfficerUIElement uiElement;
-    private final TextFieldAPI textField;
+    private final Map<String, ButtonAPI> buttonMap;
 
-    public ConfirmEditTags(OfficerUIElement elem, TextFieldAPI textField) {
+    public ConfirmEditTags(OfficerUIElement elem, Map<String, ButtonAPI> buttonMap) {
         uiElement = elem;
-        this.textField = textField;
+        this.buttonMap = buttonMap;
     }
 
     @Override
@@ -25,8 +24,13 @@ public class ConfirmEditTags extends DialogDismissedListener {
         if (option == 1) {
             return;
         }
-        String tagsStr = textField.getText();
-        String[] tags = tagsStr.trim().toLowerCase(Locale.ROOT).split("\\s*,\\s*");
-        Util.updateOfficerTags(uiElement.getOfficerData(), new TreeSet<>(Arrays.asList(tags)));
+
+        Set<String> tags = new TreeSet<>();
+        for (Map.Entry<String, ButtonAPI> entry : buttonMap.entrySet()) {
+          if (entry.getValue().isChecked()) {
+              tags.add(entry.getKey());
+          }
+        }
+        Util.updateOfficerTags(uiElement.getOfficerData(), tags);
     }
 }

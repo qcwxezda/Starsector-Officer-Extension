@@ -1,19 +1,28 @@
 package officerextension.listeners;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.ui.CustomPanelAPI;
-import com.fs.starfarer.api.ui.TextFieldAPI;
-import com.fs.starfarer.api.ui.TooltipMakerAPI;
+import com.fs.starfarer.api.ui.*;
+import com.fs.starfarer.api.util.Misc;
 import officerextension.Util;
 import officerextension.UtilReflection.ConfirmDialogData;
 import officerextension.UtilReflection;
+import officerextension.ui.Button;
 import officerextension.ui.OfficerUIElement;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class EditTags extends ActionListener {
 
     private final OfficerUIElement uiElement;
+
+    public static float BUTTONS_LIST_HEIGHT = 440f, BUTTONS_LIST_X_PAD = 30f, BUTTONS_LIST_Y_PAD = 20f;
+    public static float DIALOG_WIDTH = 425f;
+    public static float BASE_DIALOG_HEIGHT = 160f;
+    public static float DIALOG_HEIGHT_PER_BUTTON = 40f;
+    public static float MAX_DIALOG_HEIGHT = 600f;
+    public static float BUTTON_WIDTH = 260f, BUTTON_HEIGHT = 30f, BUTTON_PAD = 10f;
 
     public EditTags(OfficerUIElement element) {
         uiElement = element;
@@ -21,31 +30,53 @@ public class EditTags extends ActionListener {
 
     @Override
     public void trigger(Object... args) {
-        CustomPanelAPI customPanel = Global.getSettings().createCustom(500f, 150f, null);
-        TooltipMakerAPI tooltipMaker = customPanel.createUIElement(500f, 150f, false);
-        TextFieldAPI textField = tooltipMaker.addTextField(500f, 50f);
-        textField.setVerticalCursor(false);
-        Set<String> tags = Util.getOfficerTags(uiElement.getOfficerData());
-        StringBuilder tagsStr = new StringBuilder();
-        for (String tag : tags) {
-            tagsStr.append(tag).append(", ");
+
+        Set<String> allTags = Util.getAllTags();
+        float height = Math.min(BASE_DIALOG_HEIGHT + DIALOG_HEIGHT_PER_BUTTON * allTags.size(), MAX_DIALOG_HEIGHT);
+
+        CustomPanelAPI customPanel = Global.getSettings().createCustom(DIALOG_WIDTH - 20f, height - 40f, null);
+        TooltipMakerAPI buttonsList = customPanel.createUIElement(DIALOG_WIDTH - 80f, BUTTONS_LIST_HEIGHT, true);
+        Map<String, ButtonAPI> buttonMap = new HashMap<>();
+        for (String str : allTags) {
+            ButtonAPI button = buttonsList.addAreaCheckbox(
+                    str,
+                    null,
+                    Misc.getBasePlayerColor(),
+                    Misc.getDarkPlayerColor(),
+                    Misc.getBrightPlayerColor(),
+                    BUTTON_WIDTH,
+                    BUTTON_HEIGHT,
+                    BUTTON_PAD);
+            button.setChecked(Util.hasTag(uiElement.getOfficerData(), str));
+            buttonMap.put(str, button);
         }
-        textField.setText(tagsStr.toString());
+
+        TooltipMakerAPI textFieldMaker = customPanel.createUIElement(DIALOG_WIDTH - 80f, BUTTON_HEIGHT, false);
+        TextFieldAPI textField = textFieldMaker.addTextField(BUTTON_WIDTH, BUTTON_HEIGHT);
+        textField.setVerticalCursor(false);
         textField.grabFocus(false);
 
-        ConfirmEditTags confirmListener = new ConfirmEditTags(uiElement, textField);
+        Button addButton = new Button(textFieldMaker.addButton("Add", null, 75f, 25f, 0f));
+        addButton.setShortcut(15, true);
+
+        ConfirmEditTags confirmListener = new ConfirmEditTags(uiElement, buttonMap);
         ConfirmDialogData data = UtilReflection.showConfirmationDialog(
-                "Enter a comma-separated list of tag names: ",
+                "Select or add tags: ",
                 "Confirm",
                 "Cancel",
-                650f,
-                160f,
+                DIALOG_WIDTH,
+                height,
                 confirmListener);
         if (data == null) {
             return;
         }
 
-        customPanel.addUIElement(tooltipMaker);
-        data.panel.addComponent(customPanel).inMid();
+        final AddTagButtonListener addTagListener = new AddTagButtonListener(buttonsList, textField, buttonMap, customPanel, data.dialog);
+        addButton.setListener(addTagListener);
+        addButton.getPosition().rightOfMid((UIComponentAPI) textField, 0f).setXAlignOffset(10f);
+
+        customPanel.addUIElement(textFieldMaker).inBL(30f, 30f);
+        customPanel.addUIElement(buttonsList).inTL(BUTTONS_LIST_X_PAD, BUTTONS_LIST_Y_PAD);
+        data.panel.addComponent(customPanel).inTL(10f, 30f);
     }
 }

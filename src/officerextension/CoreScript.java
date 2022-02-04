@@ -496,7 +496,7 @@ public class CoreScript implements EveryFrameScript {
     }
 
     public void updateActiveFilters(Set<OfficerFilter> newFilters, CaptainPickerDialog cpd) {
-        if (activeFilters.isEmpty() && activeFilters.values().equals(newFilters)) {
+        if (activeFilters.isEmpty() && newFilters.isEmpty()) {
             return;
         }
         // We will re-filter if the filter list isn't empty, even if the parameters are the same

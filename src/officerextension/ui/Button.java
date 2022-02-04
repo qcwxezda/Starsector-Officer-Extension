@@ -37,6 +37,15 @@ public class Button extends UIComponent implements Renderable {
         }
     }
 
+    public void setShortcut(int key, boolean idkWhatThisDoes) {
+        try {
+            Method setShortcut = inner.getClass().getMethod("setShortcut", int.class, boolean.class);
+            setShortcut.invoke(inner, key, idkWhatThisDoes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public Object getListener() {
         return UtilReflection.invokeGetter(inner, "getListener");
     }

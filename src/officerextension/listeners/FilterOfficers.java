@@ -160,7 +160,7 @@ public class FilterOfficers extends ActionListener {
         }
         setTooltipHeight(tooltipMaker, maxHeight);
 
-        TooltipMakerAPI tagMaker = customPanel.createUIElement(280f, 480f, true);
+        TooltipMakerAPI tagMaker = customPanel.createUIElement(280f, 462f, true);
 
         // Pre-defined tags: personality
         // No personality enum so have to do this manually
@@ -230,8 +230,8 @@ public class FilterOfficers extends ActionListener {
             return;
         }
 
-        customPanel.addUIElement(tooltipMaker).inLMid(10f);
-        customPanel.addUIElement(tagMaker).inLMid(140f);
+        customPanel.addUIElement(tooltipMaker).inTL(10f, 0f);
+        customPanel.addUIElement(tagMaker).inTL(140f, 0f);
         data.panel.addComponent(customPanel).inTL(10f, 50f);
     }
 }

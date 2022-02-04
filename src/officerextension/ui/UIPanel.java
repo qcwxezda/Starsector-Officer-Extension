@@ -11,6 +11,7 @@ public class UIPanel extends UIComponent implements Renderable {
 
     private static Method addMethod;
     private static Method getChildrenNonCopyMethod;
+    private static Method removeMethod;
 
     public UIPanel(Object o) {
         super(o);
@@ -30,6 +31,14 @@ public class UIPanel extends UIComponent implements Renderable {
                 throw new RuntimeException("UIPanel's getChildrenNonCopy method not found");
             }
         }
+        if (removeMethod == null) {
+            try {
+                removeMethod = inner.getClass().getMethod("remove", ClassRefs.renderableUIElementInterface);
+            }
+            catch (Exception e) {
+                throw new RuntimeException("UIPanel's remove method not found");
+            }
+        }
     }
 
     public Position add(Renderable elem) {
@@ -39,6 +48,15 @@ public class UIPanel extends UIComponent implements Renderable {
         catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public void remove(Renderable elem) {
+        try {
+            removeMethod.invoke(inner, elem.getInstance());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

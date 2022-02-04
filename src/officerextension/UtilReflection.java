@@ -56,7 +56,12 @@ public class UtilReflection {
             LabelAPI label = (LabelAPI) invokeGetter(confirmDialog, "getLabel");
             Button yes = new Button((ButtonAPI) invokeGetter(confirmDialog, "getButton", 0));
             Button no = new Button((ButtonAPI) invokeGetter(confirmDialog, "getButton", 1));
-            return new ConfirmDialogData(label, yes, no, (UIPanelAPI) invokeGetter(confirmDialog, "getInnerPanel"));
+            return new ConfirmDialogData(
+                    label,
+                    yes,
+                    no,
+                    (UIPanelAPI) invokeGetter(confirmDialog, "getInnerPanel"),
+                    (UIPanelAPI) confirmDialog);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -130,12 +135,14 @@ public class UtilReflection {
         public Button confirmButton;
         public Button cancelButton;
         public UIPanelAPI panel;
+        public UIPanelAPI dialog;
 
-        public ConfirmDialogData(LabelAPI label, Button yes, Button no, UIPanelAPI panel) {
+        public ConfirmDialogData(LabelAPI label, Button yes, Button no, UIPanelAPI panel, UIPanelAPI dialog) {
             textLabel = label;
             confirmButton = yes;
             cancelButton = no;
             this.panel = panel;
+            this.dialog = dialog;
         }
     }
 }

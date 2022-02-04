@@ -56,6 +56,10 @@ public class Util {
         return tags == null ? new HashSet<String>() : (Set<String>) tags;
     }
 
+    public static boolean hasTag(OfficerDataAPI officer, String tag) {
+        return getOfficerTags(officer).contains(tag);
+    }
+
     public static Set<String> getAllTags() {
         Set<String> allTags = new TreeSet<>();
         for (OfficerDataAPI officer : Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy()) {

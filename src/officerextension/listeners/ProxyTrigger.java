@@ -19,26 +19,46 @@ public abstract class ProxyTrigger implements Triggerable {
         proxy = java.lang.reflect.Proxy.newProxyInstance(
                 interfc.getClassLoader(),
                 new Class<?>[] {interfc},
-                new InvocationHandler() {
+                new BaseInvocationHandler(true) {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws UnsupportedOperationException {
-                        if (method.getName().equals("equals") && args.length == 1) {
-                            return proxy == args[0];
-                        }
-                        if (method.getName().equals("hashCode") && args.length == 0) {
-                            return System.identityHashCode(proxy);
-                        }
-                        if (method.getName().equals("toString") && args.length == 0) {
-                            return proxy.getClass() + "@" + Integer.toHexString(System.identityHashCode(proxy));
-                        }
                         if (method.getName().equals(methodName)) {
                             trigger(args);
                             return null;
                         }
-                        throw new UnsupportedOperationException("Methods other than " + methodName + " are not supported.");
+                        return super.invoke(proxy, method, args);
                     }
                 }
         );
+    }
+
+    /** If [throwException == true], throws an exception on unrecognized method. Else, ignores unrecognized methods
+     *  and returns [null]. */
+    public static class BaseInvocationHandler implements InvocationHandler {
+
+        private final boolean throwException;
+
+        public BaseInvocationHandler(boolean throwException) {
+            this.throwException = throwException;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws UnsupportedOperationException {
+            if (method.getName().equals("equals") && args.length == 1) {
+                return proxy == args[0];
+            }
+            if (method.getName().equals("hashCode") && args.length == 0) {
+                return System.identityHashCode(proxy);
+            }
+            if (method.getName().equals("toString") && args.length == 0) {
+                return proxy.getClass() + "@" + Integer.toHexString(System.identityHashCode(proxy));
+            }
+            if (throwException) {
+                throw new UnsupportedOperationException("Method " + method.getName() + " not supported by this InvocationHandler.");
+            }
+            //noinspection SuspiciousInvocationHandlerImplementation
+            return null;
+        }
     }
 
     public Object getProxy() {
