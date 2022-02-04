@@ -39,7 +39,7 @@ public class AddTagButtonListener extends ActionListener {
         Object lastChild = children.get(children.size() - 1);
         try {
             Method setYOffset = lastChild.getClass().getMethod("setYOffset", float.class);
-            setYOffset.invoke(lastChild, Math.max(0f, y));
+            setYOffset.invoke(lastChild, Math.min(Math.max(0f, buttonsList.getPosition().getHeight() - EditTags.BUTTONS_LIST_HEIGHT), Math.max(0f, y)));
         }
         catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
             // Do nothing, it didn't have a scroller
@@ -83,7 +83,7 @@ public class AddTagButtonListener extends ActionListener {
                 Misc.getBrightPlayerColor(),
                 EditTags.BUTTON_WIDTH,
                 EditTags.BUTTON_HEIGHT,
-                EditTags.BUTTON_PAD);
+                buttonMap.size() == 0 ? 0f : EditTags.BUTTON_PAD);
         List<?> children = customPanelAsPanel.getChildrenNonCopy();
         Renderable oldLastChild = new UIComponent(children.get(children.size() - 1));
         customPanelAsPanel.remove(oldLastChild);
@@ -94,8 +94,8 @@ public class AddTagButtonListener extends ActionListener {
         buttonMap.put(text, button);
         button.setChecked(true);
 
-        float newHeight = EditTags.BASE_DIALOG_HEIGHT + EditTags.DIALOG_HEIGHT_PER_BUTTON * buttonMap.keySet().size();
-        if (newHeight - EditTags.DIALOG_HEIGHT_PER_BUTTON < EditTags.MAX_DIALOG_HEIGHT) {
+        float newHeight = Math.min(EditTags.BASE_DIALOG_HEIGHT + EditTags.DIALOG_HEIGHT_PER_BUTTON * buttonMap.size(), EditTags.MAX_DIALOG_HEIGHT);
+        if (newHeight != dialog.getPosition().getHeight()) {
             try {
                 Method setSize = dialog.getInstance().getClass().getMethod("setSize", float.class, float.class);
                 setSize.invoke(dialog.getInstance(), dialog.getPosition().getWidth(), newHeight);

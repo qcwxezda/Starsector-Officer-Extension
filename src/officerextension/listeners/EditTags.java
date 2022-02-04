@@ -19,7 +19,7 @@ public class EditTags extends ActionListener {
 
     public static float BUTTONS_LIST_HEIGHT = 440f, BUTTONS_LIST_X_PAD = 30f, BUTTONS_LIST_Y_PAD = 20f;
     public static float DIALOG_WIDTH = 425f;
-    public static float BASE_DIALOG_HEIGHT = 160f;
+    public static float BASE_DIALOG_HEIGHT = 144f;
     public static float DIALOG_HEIGHT_PER_BUTTON = 40f;
     public static float MAX_DIALOG_HEIGHT = 600f;
     public static float BUTTON_WIDTH = 260f, BUTTON_HEIGHT = 30f, BUTTON_PAD = 10f;
@@ -37,6 +37,7 @@ public class EditTags extends ActionListener {
         CustomPanelAPI customPanel = Global.getSettings().createCustom(DIALOG_WIDTH - 20f, height - 40f, null);
         TooltipMakerAPI buttonsList = customPanel.createUIElement(DIALOG_WIDTH - 80f, BUTTONS_LIST_HEIGHT, true);
         Map<String, ButtonAPI> buttonMap = new HashMap<>();
+        boolean shouldPad = false;
         for (String str : allTags) {
             ButtonAPI button = buttonsList.addAreaCheckbox(
                     str,
@@ -46,7 +47,8 @@ public class EditTags extends ActionListener {
                     Misc.getBrightPlayerColor(),
                     BUTTON_WIDTH,
                     BUTTON_HEIGHT,
-                    BUTTON_PAD);
+                    shouldPad ? BUTTON_PAD : 0);
+            shouldPad = true;
             button.setChecked(Util.hasTag(uiElement.getOfficerData(), str));
             buttonMap.put(str, button);
         }
