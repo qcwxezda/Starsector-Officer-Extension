@@ -6,6 +6,7 @@
   {
     "major":0,
     "minor":4,
-    "patch":1,
-  }
+    "patch":2,
+  },
+  "directDownloadURL": "https://github.com/qcwxezda/Starsector-Officer-Extension/releases/download/v0.4.2/Officer.Extension.zip"
 }
