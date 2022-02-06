@@ -37,7 +37,7 @@ public class Util {
 
     public static void updateOfficerTags(OfficerDataAPI officer, Set<String> tags) {
         if (tags == null || tags.isEmpty()) {
-            officer.getPerson().getMemory().unset(Settings.OFFICER_TAGS_DATA_KEY);
+            officer.getPerson().getMemoryWithoutUpdate().unset(Settings.OFFICER_TAGS_DATA_KEY);
             return;
         }
         // Remove tags containing only whitespace
@@ -47,12 +47,12 @@ public class Util {
                 itr.remove();
             }
         }
-        officer.getPerson().getMemory().set(Settings.OFFICER_TAGS_DATA_KEY, tags);
+        officer.getPerson().getMemoryWithoutUpdate().set(Settings.OFFICER_TAGS_DATA_KEY, tags);
     }
 
     @SuppressWarnings("unchecked")
     public static Set<String> getOfficerTags(OfficerDataAPI officer) {
-        Object tags = officer.getPerson().getMemory().get(Settings.OFFICER_TAGS_DATA_KEY);
+        Object tags = officer.getPerson().getMemoryWithoutUpdate().get(Settings.OFFICER_TAGS_DATA_KEY);
         return tags == null ? new HashSet<String>() : (Set<String>) tags;
     }
 

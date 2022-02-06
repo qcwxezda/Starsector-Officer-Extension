@@ -293,7 +293,7 @@ public class CoreScript implements EveryFrameScript {
         // Undo the weird behavior with exceptional cryopod officers where they only have
         // the "retrain" option regardless of their level
         PersonAPI officerPerson = elem.getOfficerData().getPerson();
-        if (officerPerson.getMemory().getBoolean(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
+        if (officerPerson.getMemoryWithoutUpdate().getBoolean(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
             OfficerLevelupPlugin levelUpPlugin = (OfficerLevelupPlugin) Global.getSettings().getPlugin("officerLevelUp");
             // If fewer than 5 elite skills, change the retrain button to make skills elite
             if (Misc.getNumEliteSkills(officerPerson) < levelUpPlugin.getMaxEliteSkills(officerPerson)) {

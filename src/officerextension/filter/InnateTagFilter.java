@@ -10,6 +10,6 @@ public class InnateTagFilter extends TagFilter {
 
     @Override
     public boolean check(OfficerDataAPI officer) {
-        return officer.getPerson().hasTag(tagName) || officer.getPerson().getMemory().getBoolean(tagName);
+        return officer.getPerson().hasTag(tagName) || officer.getPerson().getMemoryWithoutUpdate().getBoolean(tagName);
     }
 }
