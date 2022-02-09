@@ -27,6 +27,7 @@ public class ClassRefs {
         // If we don't know the confirmation dialog class, try to create a confirmation dialog in order to access it
         try {
             if (confirmDialogClass == null && campaignUI.showConfirmDialog("", "", "", null, null)) {
+                boolean isPaused = Global.getSector().isPaused();
                 Object screenPanel = UtilReflection.getField(campaignUI, "screenPanel");
                 List<?> children = (List<?>) UtilReflection.invokeGetter(screenPanel, "getChildrenNonCopy");
                 // the confirm dialog will be the last child
@@ -35,7 +36,7 @@ public class ClassRefs {
                 // we have the class, dismiss the dialog
                 Method dismiss = confirmDialogClass.getMethod("dismiss", int.class);
                 dismiss.invoke(panel, 0);
-
+                Global.getSector().setPaused(isPaused);
             }
         } catch (Exception e) {
             e.printStackTrace();
