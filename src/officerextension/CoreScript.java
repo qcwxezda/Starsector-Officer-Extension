@@ -125,7 +125,7 @@ public class CoreScript implements EveryFrameScript {
         }
         else {
             // If the officer list has changed, we need to re-inject every panel
-            if (officerListRef != cpd.getListOfficers()) {
+            if (officerListRef != UtilReflection.invokeGetter(cpd, "getListOfficers")) {
                 injectCaptainPickerDialog(cpd);
             }
             // Check each panel to see if we need to re-inject
@@ -143,7 +143,7 @@ public class CoreScript implements EveryFrameScript {
     }
 
     public void injectCaptainPickerDialog(CaptainPickerDialog cpd) {
-        officerListRef = cpd.getListOfficers();
+        officerListRef = (UIPanelAPI) UtilReflection.invokeGetter(cpd, "getListOfficers");
         officerPanelFirstChild.clear();
         insertUndoButton(cpd);
         // AI cores can't have tags
@@ -167,7 +167,7 @@ public class CoreScript implements EveryFrameScript {
         Label newLabel = temp.createSmallInsigniaLabel("", Alignment.LMID);
         newLabel.setHighlightOnMouseover(true);
         this.numOfficersLabel = newLabel;
-        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         panel.add(newLabel).set(numOfficersLabel.getPosition());
         updateNumOfficersLabel();
     }
@@ -196,7 +196,7 @@ public class CoreScript implements EveryFrameScript {
                 Misc.getDarkPlayerColor(),
                 150f,
                 25f);
-        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         if (Misc.isAutomated(CaptainPicker.getFleetMember(cpd))) {
             panel.add(undoButton).getInstance().inBL(10f, 10f);
         }
@@ -215,7 +215,7 @@ public class CoreScript implements EveryFrameScript {
                 120f,
                 25f
         );
-        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         panel.add(filterButton).getInstance().inBMid(10f).setXAlignOffset(-100f);
     }
 
@@ -229,7 +229,7 @@ public class CoreScript implements EveryFrameScript {
                 120f,
                 25f
         );
-        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         panel.add(clearButton).getInstance().inBMid(10f).setXAlignOffset(35f);
     }
 
@@ -243,13 +243,13 @@ public class CoreScript implements EveryFrameScript {
                 120f,
                 25f
         );
-        UIPanel panel = new UIPanel(cpd.getInnerPanel());
+        UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         panel.add(sortButton).getInstance().inBMid(10f).setXAlignOffset(170f);
     }
 
     /** Injects the custom behavior into all officer UI elements in the captain picker dialog list. */
     private void injectAll(CaptainPickerDialog cpd) {
-        List<?> officerUIList = cpd.getListOfficers().getItems();
+        List<?> officerUIList = (List<?>) UtilReflection.invokeGetter(UtilReflection.invokeGetter(cpd, "getListOfficers"), "getItems");
         if (officerUIList != null) {
             for (Object o : officerUIList) {
                 inject(new OfficerUIElement(o, this));
@@ -466,8 +466,10 @@ public class CoreScript implements EveryFrameScript {
 
     public void applyFilters(CaptainPickerDialog cpd) {
         List<Object> filteredPanels = new ArrayList<>();
+        Object officerList = UtilReflection.invokeGetter(cpd, "getListOfficers");
+        List<?> items = (List<?>) UtilReflection.invokeGetter(officerList, "getItems");
 
-        for (Object elem : cpd.getListOfficers().getItems()) {
+        for (Object elem : items) {
             OfficerDataAPI officerData = OfficerUIElement.getOfficerData(elem);
             // Don't filter out the player ever
             if (officerData.getPerson().isPlayer()) {
@@ -484,15 +486,21 @@ public class CoreScript implements EveryFrameScript {
 
         try {
             for (Object o : filteredPanels) {
-                Method removeItem = cpd.getListOfficers().getClass().getMethod("removeItem", ClassRefs.renderableUIElementInterface);
-                removeItem.invoke(cpd.getListOfficers(), o);
+                Method removeItem = officerList.getClass().getMethod("removeItem", ClassRefs.renderableUIElementInterface);
+                removeItem.invoke(officerList, o);
             }
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
-        cpd.getListOfficers().collapseEmptySlots(true);
+        try {
+            Method collapseEmptySlots = officerList.getClass().getMethod("collapseEmptySlots", boolean.class);
+            collapseEmptySlots.invoke(officerList, true);
+        }
+        catch (Exception e) {
+            // Do nothing
+        }
     }
 
     public void updateActiveFilters(Set<OfficerFilter> newFilters, CaptainPickerDialog cpd) {
@@ -506,7 +514,14 @@ public class CoreScript implements EveryFrameScript {
             activeFilters.put(filter, filter);
         }
         cpd.sizeChanged(0f, 0f);
-        cpd.getListOfficers().getScroller().setYOffset(0);
+        try {
+            Object scroller = UtilReflection.invokeGetter(UtilReflection.invokeGetter(cpd, "getListOfficers"), "getScroller");
+            Method setYOffset = scroller.getClass().getMethod("setYOffset", float.class);
+            setYOffset.invoke(scroller, 0f);
+        }
+        catch (Exception e) {
+            // Do nothing
+        }
         injectCaptainPickerDialog(cpd);
     }
 

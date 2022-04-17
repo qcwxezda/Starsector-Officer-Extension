@@ -8,7 +8,9 @@ import com.fs.starfarer.campaign.fleet.FleetData;
 import com.fs.starfarer.coreui.CaptainPickerDialog;
 import officerextension.CoreScript;
 import officerextension.Util;
+import officerextension.UtilReflection;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -74,7 +76,14 @@ public class SortOfficers extends ActionListener {
         );
 
         dialog.sizeChanged(0f, 0f);
-        dialog.getListOfficers().getScroller().setYOffset(0f);
+        Object scroller = UtilReflection.invokeGetter(UtilReflection.invokeGetter(dialog, "getListOfficers"), "getScroller");
+        try {
+            Method setYOffset = scroller.getClass().getDeclaredMethod("setYOffset", float.class);
+            setYOffset.invoke(scroller, 0f);
+        }
+        catch (Exception e) {
+            // Fall through
+        }
         injector.injectCaptainPickerDialog(dialog);
     }
 }

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.campaign.FleetDataAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import officerextension.ClassRefs;
+import officerextension.UtilReflection;
 import officerextension.ui.OfficerUIElement;
 
 import java.lang.reflect.Method;
@@ -33,10 +34,11 @@ public class ConfirmDismissOfficer extends DialogDismissedListener {
         playerFleetData.removeOfficer(officerData.getPerson());
         uiElement.getInjector().updateNumOfficersLabel();
         try {
-            Object officerList = uiElement.getCaptainPickerDialog().getListOfficers();
+            Object officerList = UtilReflection.invokeGetter(uiElement.getCaptainPickerDialog(), "getListOfficers");
             Method removeItem = officerList.getClass().getMethod("removeItem", ClassRefs.renderableUIElementInterface);
             removeItem.invoke(officerList, uiElement.getInstance());
-            uiElement.getCaptainPickerDialog().getListOfficers().collapseEmptySlots(true);
+            Method collapseEmptySlots = officerList.getClass().getMethod("collapseEmptySlots", Boolean.class);
+            collapseEmptySlots.invoke(officerList, true);
         }
         catch (Exception e) {
             e.printStackTrace();
