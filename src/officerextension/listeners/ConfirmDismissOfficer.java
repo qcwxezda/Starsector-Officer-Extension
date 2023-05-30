@@ -37,7 +37,7 @@ public class ConfirmDismissOfficer extends DialogDismissedListener {
             Object officerList = UtilReflection.invokeGetter(uiElement.getCaptainPickerDialog(), "getListOfficers");
             Method removeItem = officerList.getClass().getMethod("removeItem", ClassRefs.renderableUIElementInterface);
             removeItem.invoke(officerList, uiElement.getInstance());
-            Method collapseEmptySlots = officerList.getClass().getMethod("collapseEmptySlots", Boolean.class);
+            Method collapseEmptySlots = officerList.getClass().getMethod("collapseEmptySlots", boolean.class);
             collapseEmptySlots.invoke(officerList, true);
         }
         catch (Exception e) {
