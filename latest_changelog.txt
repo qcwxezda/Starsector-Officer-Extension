@@ -1,0 +1,2 @@
+Add handling for "unremovable" skills via tag "officerextension_unremovable"
+Explicitly prevent demotion if officer is not leveled up
