@@ -34,7 +34,9 @@ public class FleetListener extends BaseCampaignEventListener{
             switch (side) {
                 case ONE:
                 case TWO:
-                    commander = fleet.getBattle().getOtherSideCombined(side).getCommander();
+                    CampaignFleetAPI otherSideCombined = fleet.getBattle().getOtherSideCombined(side);
+                    if (otherSideCombined == null) return;
+                    commander = otherSideCombined.getCommander();
                     break;
                 default:
                     return;
