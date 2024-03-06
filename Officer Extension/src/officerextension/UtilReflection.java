@@ -83,13 +83,9 @@ public class UtilReflection {
     }
 
     public static Object getField(Object o, String fieldName) {
-        return getDeclaredField(o.getClass(), o, fieldName);
-    }
-
-    public static Object getDeclaredField(Class<?> cls, Object o, String fieldName) {
         if (o == null) return null;
         try {
-            Field field = cls.getDeclaredField(fieldName);
+            Field field = o.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             return field.get(o);
         } catch (Exception e) {

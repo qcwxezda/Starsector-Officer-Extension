@@ -42,8 +42,8 @@ public class FleetListener extends BaseCampaignEventListener implements Characte
     private void modifyDifficultyCalculator(InteractionDialogAPI dialog) {
         InteractionDialogPlugin plugin = dialog.getPlugin();
         if (plugin instanceof FleetInteractionDialogPluginImpl) {
-            FleetEncounterContext context = (FleetEncounterContext) UtilReflection.getDeclaredField(FleetInteractionDialogPluginImpl.class, plugin, "context");
-            if (context != null && !(context instanceof ModifiedFleetEncounterContext)) {
+            FleetEncounterContext context = (FleetEncounterContext) UtilReflection.getField(plugin, "context");
+            if (!(context instanceof ModifiedFleetEncounterContext)) {
                 ModifiedFleetEncounterContext newContext = new ModifiedFleetEncounterContext();
 
                 for (Field field : FleetEncounterContext.class.getDeclaredFields()) {
