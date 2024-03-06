@@ -2,24 +2,78 @@ package officerextension;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.*;
+import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
+import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
+import com.fs.starfarer.api.campaign.listeners.CharacterStatsRefreshListener;
 import com.fs.starfarer.api.characters.MutableCharacterStatsAPI.SkillLevelAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.characters.SkillSpecAPI;
+import com.fs.starfarer.api.combat.EngagementResultAPI;
+import com.fs.starfarer.api.impl.campaign.FleetEncounterContext;
+import com.fs.starfarer.api.impl.campaign.FleetInteractionDialogPluginImpl;
+import com.fs.starfarer.api.impl.campaign.intel.PromoteOfficerIntel;
+import com.sun.javafx.beans.annotations.NonNull;
+import officerextension.campaign.ModifiedFleetEncounterContext;
+import officerextension.campaign.ModifiedPromoteOfficerIntel;
 
 import java.util.List;
 
-public class FleetListener extends BaseCampaignEventListener{
-
-    public FleetListener(boolean permaRegister) {
-        super(permaRegister);
+public class FleetListener extends BaseCampaignEventListener implements CharacterStatsRefreshListener {
+    public FleetListener() {
+        super(false);
     }
+
+    @Override
+    public void reportPlayerEngagement(EngagementResultAPI result) {
+        IntelManagerAPI manager = Global.getSector().getIntelManager();
+        List<IntelInfoPlugin> promotionIntel = manager.getIntel(PromoteOfficerIntel.class);
+        if (promotionIntel != null) {
+            InteractionDialogAPI dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+            for (IntelInfoPlugin intel : promotionIntel) {
+                if (!(intel instanceof ModifiedPromoteOfficerIntel)) {
+                    manager.removeIntel(intel);
+                    manager.addIntel(new ModifiedPromoteOfficerIntel(dialog == null ? null : dialog.getTextPanel()));
+                }
+            }
+        }
+    }
+
+    private void modifyDifficultyCalculator(@NonNull InteractionDialogAPI dialog) {
+        InteractionDialogPlugin plugin = dialog.getPlugin();
+        if (plugin instanceof FleetInteractionDialogPluginImpl) {
+            FleetEncounterContext context = (FleetEncounterContext) UtilReflection.getField(plugin, "context");
+            if (!(context instanceof ModifiedFleetEncounterContext)) {
+                @SuppressWarnings("unchecked") ModifiedFleetEncounterContext newContext = new ModifiedFleetEncounterContext(
+                        (List<FleetEncounterContextPlugin.DataForEncounterSide>) UtilReflection.getField(context, "sideData"),
+                        (boolean) UtilReflection.getField(context, "engagedInHostilities"),
+                        (boolean) UtilReflection.getField(context, "engagedInActualBattle"),
+                        (boolean) UtilReflection.getField(context, "playerOnlyRetreated"),
+                        (boolean) UtilReflection.getField(context, "playerPursued"),
+                        (boolean) UtilReflection.getField(context, "playerDidSeriousDamage"),
+                        context.getBattle(),
+                        (boolean) UtilReflection.getField(context, "otherFleetHarriedPlayer"),
+                        (boolean) UtilReflection.getField(context, "ongoingBattle"),
+                        (boolean) UtilReflection.getField(context, "isAutoresolve"),
+                        (CombatDamageData) UtilReflection.getField(context, "runningDamageTotal")
+                );
+
+                UtilReflection.setField(plugin, "context", newContext);
+            }
+        }
+    }
+
 
     @Override
     public void reportShownInteractionDialog(InteractionDialogAPI dialog) {
         SectorEntityToken target = dialog.getInteractionTarget();
+        modifyDifficultyCalculator(dialog);
+
         if (!(target instanceof CampaignFleetAPI)) {
             return;
         }
+
+        // Show other side's commander's stats, if that option is enabled
+        if (!Settings.SHOW_COMMANDER_SKILLS) return;
 
         CampaignFleetAPI fleet = (CampaignFleetAPI) target;
         PersonAPI commander;
@@ -97,4 +151,15 @@ public class FleetListener extends BaseCampaignEventListener{
         }
         textPanel.setFontInsignia();
     }
+
+    @Override
+    public void reportAboutToRefreshCharacterStatEffects() {
+        InteractionDialogAPI dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+        if (dialog != null) {
+            modifyDifficultyCalculator(dialog);
+        }
+    }
+
+    @Override
+    public void reportRefreshedCharacterStatEffects() {}
 }

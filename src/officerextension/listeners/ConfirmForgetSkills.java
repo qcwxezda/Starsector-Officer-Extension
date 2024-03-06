@@ -1,8 +1,10 @@
 package officerextension.listeners;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.characters.MutableCharacterStatsAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import com.fs.starfarer.api.plugins.OfficerLevelupPlugin;
 import com.fs.starfarer.campaign.CharacterStats;
 import officerextension.Settings;
@@ -60,6 +62,22 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
             }
         }
         if (forgotSkills > 0) {
+            // If this was an exceptional pod officer, retain max level and max elite skills data
+            MemoryAPI memory = officerData.getPerson().getMemoryWithoutUpdate();
+            if (memory.contains(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
+                if (!memory.contains(MemFlags.OFFICER_MAX_LEVEL)) {
+                    memory.set(MemFlags.OFFICER_MAX_LEVEL, stats.getLevel());
+                }
+                if (!memory.contains(MemFlags.OFFICER_MAX_ELITE_SKILLS)) {
+                    int numElite = 0;
+                    for (MutableCharacterStatsAPI.SkillLevelAPI skill : stats.getSkillsCopy()) {
+                        if (skill.getLevel() > 1) {
+                            numElite++;
+                        }
+                    }
+                    memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, numElite);
+                }
+            }
             // Preserve the percentage progress towards the next level
             OfficerLevelupPlugin levelUpPlugin = (OfficerLevelupPlugin) Global.getSettings().getPlugin("officerLevelUp");
             int level = stats.getLevel();

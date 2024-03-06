@@ -1,5 +1,0 @@
-{
-  "plugins": {
-    "officerLevelUp":"officerextension.campaign.CryopodAwareOfficerLevelUpPlugin"
-  }
-}

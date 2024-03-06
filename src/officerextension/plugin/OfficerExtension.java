@@ -3,6 +3,7 @@ package officerextension.plugin;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignEventListener;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import officerextension.*;
 import org.apache.log4j.Logger;
@@ -19,6 +20,7 @@ public class OfficerExtension extends BaseModPlugin {
 
     private static final String[] reflectionWhitelist = new String[] {
             "officerextension.CoreScript",
+            "officerextension.FleetListener",
             "officerextension.ClassRefs",
             "officerextension.UtilReflection",
             "officerextension.ui",
@@ -41,10 +43,13 @@ public class OfficerExtension extends BaseModPlugin {
             }
         }
 
-        ClassLoader cl = new ReflectionEnabledClassLoader(url, getClass().getClassLoader());
+        @SuppressWarnings("resource") ClassLoader cl = new ReflectionEnabledClassLoader(url, getClass().getClassLoader());
         try {
             Global.getSector().addTransientScript(
                     (EveryFrameScript) cl.loadClass("officerextension.CoreScript").newInstance());
+            Object fleetListener = cl.loadClass("officerextension.FleetListener").newInstance();
+            Global.getSector().addTransientListener((CampaignEventListener) fleetListener);
+            Global.getSector().getListenerManager().addListener(fleetListener, true);
         } catch (Exception e) {
             logger.error("Failure to load core script class; exiting", e);
             return;
@@ -52,10 +57,6 @@ public class OfficerExtension extends BaseModPlugin {
 
         Settings.load();
         Global.getSector().addTransientListener(new EconomyListener(false));
-        FleetListener fleetListener = new FleetListener(false);
-        if (Settings.SHOW_COMMANDER_SKILLS) {
-            Global.getSector().addTransientListener(fleetListener);
-        }
 
         // Add suspended officers from pre 0.4 versions back into the player's fleet (for compatibility, will be
         // removed eventually
