@@ -1,8 +1,6 @@
 package officerextension.campaign;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.BattleAPI;
-import com.fs.starfarer.api.campaign.CombatDamageData;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -11,36 +9,9 @@ import com.fs.starfarer.api.impl.campaign.FleetEncounterContext;
 import officerextension.Settings;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ModifiedFleetEncounterContext extends FleetEncounterContext {
-
-    public ModifiedFleetEncounterContext(
-            List<DataForEncounterSide> sideData,
-            boolean engagedInHostilities,
-            boolean engagedInActualBattle,
-            boolean playerOnlyRetreated,
-            boolean playerPursued,
-            boolean playerDidSeriousDamage,
-            BattleAPI battle,
-            boolean otherFleetHarriedPlayer,
-            boolean ongoingBattle,
-            boolean isAutoresolve,
-            CombatDamageData runningDamageTotal) {
-        this.sideData = sideData;
-        this.engagedInHostilities = engagedInHostilities;
-        this.engagedInActualBattle = engagedInActualBattle;
-        this.playerOnlyRetreated = playerOnlyRetreated;
-        this.playerPursued = playerPursued;
-        this.playerDidSeriousDamage = playerDidSeriousDamage;
-        this.otherFleetHarriedPlayer = otherFleetHarriedPlayer;
-        this.battle = battle;
-        this.ongoingBattle = ongoingBattle;
-        this.isAutoresolve = isAutoresolve;
-        this.runningDamageTotal = runningDamageTotal;
-    }
-
     @Override
     public float computeBattleDifficulty() {
         if (computedDifficulty) return difficulty;

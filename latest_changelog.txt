@@ -1,6 +1,1 @@
-- Suspended officers no longer count for battle bonus XP calculation
-- Officer promotion candidate intel event is no longer locked when vanilla officer cap is reached
-- No longer uses a custom officer level-up plugin, instead sets max level and max elite skills values in the officer's local memory
-- Added handling for "unremovable" skills via tag "officerextension_unremovable"
-- Disabled demotion if officer is not leveled up
-- Tentative fix for possible NPE when getOtherSideCombined is null
+-Tentative fix for bug when FleetEncounterContext is different from 0.97a-RC11 version, should improve flexibility for different Starsector versions

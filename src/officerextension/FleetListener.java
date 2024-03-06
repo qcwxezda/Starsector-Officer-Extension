@@ -12,10 +12,11 @@ import com.fs.starfarer.api.combat.EngagementResultAPI;
 import com.fs.starfarer.api.impl.campaign.FleetEncounterContext;
 import com.fs.starfarer.api.impl.campaign.FleetInteractionDialogPluginImpl;
 import com.fs.starfarer.api.impl.campaign.intel.PromoteOfficerIntel;
-import com.sun.javafx.beans.annotations.NonNull;
 import officerextension.campaign.ModifiedFleetEncounterContext;
 import officerextension.campaign.ModifiedPromoteOfficerIntel;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class FleetListener extends BaseCampaignEventListener implements CharacterStatsRefreshListener {
@@ -38,24 +39,24 @@ public class FleetListener extends BaseCampaignEventListener implements Characte
         }
     }
 
-    private void modifyDifficultyCalculator(@NonNull InteractionDialogAPI dialog) {
+    private void modifyDifficultyCalculator(InteractionDialogAPI dialog) {
         InteractionDialogPlugin plugin = dialog.getPlugin();
         if (plugin instanceof FleetInteractionDialogPluginImpl) {
             FleetEncounterContext context = (FleetEncounterContext) UtilReflection.getField(plugin, "context");
             if (!(context instanceof ModifiedFleetEncounterContext)) {
-                @SuppressWarnings("unchecked") ModifiedFleetEncounterContext newContext = new ModifiedFleetEncounterContext(
-                        (List<FleetEncounterContextPlugin.DataForEncounterSide>) UtilReflection.getField(context, "sideData"),
-                        (boolean) UtilReflection.getField(context, "engagedInHostilities"),
-                        (boolean) UtilReflection.getField(context, "engagedInActualBattle"),
-                        (boolean) UtilReflection.getField(context, "playerOnlyRetreated"),
-                        (boolean) UtilReflection.getField(context, "playerPursued"),
-                        (boolean) UtilReflection.getField(context, "playerDidSeriousDamage"),
-                        context.getBattle(),
-                        (boolean) UtilReflection.getField(context, "otherFleetHarriedPlayer"),
-                        (boolean) UtilReflection.getField(context, "ongoingBattle"),
-                        (boolean) UtilReflection.getField(context, "isAutoresolve"),
-                        (CombatDamageData) UtilReflection.getField(context, "runningDamageTotal")
-                );
+                ModifiedFleetEncounterContext newContext = new ModifiedFleetEncounterContext();
+
+                for (Field field : FleetEncounterContext.class.getDeclaredFields()) {
+                    int modifiers = field.getModifiers();
+                    if (!Modifier.isStatic(modifiers) && !Modifier.isFinal(modifiers)) {
+                        field.setAccessible(true);
+                        try {
+                            field.set(newContext, field.get(context));
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
 
                 UtilReflection.setField(plugin, "context", newContext);
             }
