@@ -1,1 +1,0 @@
--Tentative fix for bug when FleetEncounterContext is different from 0.97a-RC11 version, should improve flexibility for different Starsector versions
