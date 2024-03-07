@@ -1,0 +1,10 @@
+fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
+general_Header,General,Header,General,,,,,
+general_suspendedOfficerMonthlySalaryFraction,Suspended Officer Upkeep,Double,0.1,,Percentage of standard monthly salary that an officer is paid when suspended,0,1,
+general_suspendOfficerCostMultiplier,Suspension Cost,Double,12,,Fee to suspended an officer as a multiple of their monthly salary,0,24,
+general_demoteOfficerSPCost,Demotion SP Cost,Int,1,,Number of story points it costs to demote an officer,0,2,
+general_demoteOfficerBonusXPFraction,Demotion Bonus XP,Double,1,,Fraction of bonus XP granted when spending a story point to demote an officer,0,1,
+general_forgetEliteSkillBonusXPFraction,Lost Elite Skill Bonus XP,Double,0,,Fraction of bonus XP granted when officers forget elite skills,0,1,
+general_shouldShowFleetCommanderSkills,Show Opposing Fleet Commander Skills,Boolean,true,,Whether to show the opposing fleet's commander's combat-related skills upon first interaction,,,
+general_shouldSplitFleetCommanderSkills,Split Combat and Admiral Skills,Boolean,true,,"Whether to show two skill panels, one for personal skills and another for fleet-wide skills. Has no effect if ""Show Opposing Fleet Commander Skills"" is disabled.",
+general_officerFilterPersistentTags,Persistent Filter Tags,String,,,Comma-separated list of persistent custom tags for filtering officers. Leave blank (whitespace only) to use tags from officerextension_settings.json,,,

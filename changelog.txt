@@ -1,0 +1,8 @@
+>>> 0.6.3
+- Added LunaLib support
+- Battle difficulty calculation no longer takes unassigned officers past the vanilla maximum (sorted in descending level order) into account
+   -For example, if you have 3 assigned officers and 12 unassigned officers that are not officers, mercenaries, or AI cores, and you have an assigned officer limit of 8,
+    only the 5 highest-level unassigned officers will be counted toward battle difficulty.
+
+>>> Prior versions
+- See github.com/qcwxezda/Starsector-Officer-Extension/releases

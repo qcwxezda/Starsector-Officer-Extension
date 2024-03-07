@@ -5,6 +5,7 @@ import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignEventListener;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import lunalib.lunaSettings.LunaSettings;
 import officerextension.*;
 import org.apache.log4j.Logger;
 
@@ -27,6 +28,18 @@ public class OfficerExtension extends BaseModPlugin {
             "officerextension.FleetPanelInjector",
             "officerextension.listeners"
     };
+
+    @Override
+    public void onApplicationLoad() {
+        if (Global.getSettings().getModManager().isModEnabled("lunalib")) {
+            Settings.SettingsListener settingsListener = new Settings.SettingsListener();
+            LunaSettings.addSettingsListener(settingsListener);
+            settingsListener.settingsChanged("officerExtension");
+        }
+        else {
+            Settings.load();
+        }
+    }
 
     @Override
     public void onGameLoad(boolean newGame) {
@@ -55,7 +68,6 @@ public class OfficerExtension extends BaseModPlugin {
             return;
         }
 
-        Settings.load();
         Global.getSector().addTransientListener(new EconomyListener(false));
 
         // Add suspended officers from pre 0.4 versions back into the player's fleet (for compatibility, will be
