@@ -25,6 +25,6 @@
   # These will always show up as filter options and in the "edit tags" interface
   # before any other custom tags
   "officerFilterPersistentTags": [
-      "low tech", "midline", "high tech", "wolfpack"
+      # Example: "low tech", "midline", "high tech", "wolfpack"
   ]
 }
