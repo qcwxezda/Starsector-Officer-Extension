@@ -6,10 +6,10 @@ import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.impl.campaign.DModManager;
 import com.fs.starfarer.api.impl.campaign.FleetEncounterContext;
+import com.fs.starfarer.api.util.Misc;
 import officerextension.Settings;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ModifiedFleetEncounterContext extends FleetEncounterContext {
     @Override
@@ -30,6 +30,7 @@ public class ModifiedFleetEncounterContext extends FleetEncounterContext {
         //float baseMult = 0.2f;
         float baseMult = 2f;
         float dModMult = 0.9f;
+        int numSeenNonMerc = 0;
 
         for (FleetMemberAPI member : battle.getNonPlayerCombined().getFleetData().getMembersListCopy()) {
             if (member.isMothballed()) continue;
@@ -58,9 +59,13 @@ public class ModifiedFleetEncounterContext extends FleetEncounterContext {
             float mult = baseMult;
             if (member.isStation()) mult *= 2f;
             else if (member.isCivilian()) mult *= 0.25f;
-            if (member.getCaptain() != null && !member.getCaptain().isDefault()) {
-                scorePlayer += officerBase + officerPerLevel * Math.max(1f, member.getCaptain().getStats().getLevel());
-                seenOfficers.add(member.getCaptain());
+            PersonAPI captain = member.getCaptain();
+            if (captain != null && !captain.isDefault()) {
+                scorePlayer += officerBase + officerPerLevel * Math.max(1f, captain.getStats().getLevel());
+                seenOfficers.add(captain);
+                if (!Misc.isMercenary(captain) && !captain.isAICore() && !captain.isPlayer()) {
+                    numSeenNonMerc++;
+                }
             } else if (!member.isCivilian()) {
                 unofficeredShips++;
             }
@@ -75,16 +80,30 @@ public class ModifiedFleetEncounterContext extends FleetEncounterContext {
             }
         }
 
+        List<OfficerDataAPI> officersCopy = Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy();
+        Collections.sort(officersCopy, new Comparator<OfficerDataAPI>() {
+            @Override
+            public int compare(OfficerDataAPI d1, OfficerDataAPI d2) {
+                return d2.getPerson().getStats().getLevel() - d1.getPerson().getStats().getLevel();
+            }
+        });
+
         // so that removing officers from ships prior to a fight doesn't increase the XP gained
         // otherwise would usually be optimal to do this prior to every fight for any officers
         // on ships that aren't expected to be deployed
-        for (OfficerDataAPI od : Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy()) {
+        for (OfficerDataAPI od : officersCopy) {
             if (seenOfficers.contains(od.getPerson())) continue;
             if (od.getPerson().isPlayer()) continue;
             if (od.getPerson().hasTag(Settings.OFFICER_IS_SUSPENDED_KEY)) continue;
             if (unofficeredShips <= 0) break;
             unofficeredShips--;
             scorePlayer += officerBase + officerPerLevel * Math.max(1f, od.getPerson().getStats().getLevel());
+            if (!Misc.isMercenary(od.getPerson()) && !od.getPerson().isAICore()) {
+                numSeenNonMerc++;
+                if (numSeenNonMerc >= Misc.getMaxOfficers(Global.getSector().getPlayerFleet())) {
+                    break;
+                }
+            }
         }
 
         scorePlayer = Math.max(scorePlayer, Math.min(scoreEnemy * 0.5f, maxPlayserShipScore * 6f));
