@@ -5,7 +5,6 @@ import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignEventListener;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
-import lunalib.lunaSettings.LunaSettings;
 import officerextension.*;
 import org.apache.log4j.Logger;
 
@@ -32,9 +31,7 @@ public class OfficerExtension extends BaseModPlugin {
     @Override
     public void onApplicationLoad() {
         if (Global.getSettings().getModManager().isModEnabled("lunalib")) {
-            Settings.SettingsListener settingsListener = new Settings.SettingsListener();
-            LunaSettings.addSettingsListener(settingsListener);
-            settingsListener.settingsChanged("officerExtension");
+            LunaLibSettingsListener.init();
         }
         else {
             Settings.load();
