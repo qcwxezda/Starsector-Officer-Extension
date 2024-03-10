@@ -44,8 +44,24 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
                     Settings.DEMOTE_BONUS_XP_FRACTION,
                     "Demoted an officer: " + officerData.getPerson().getNameString());
         }
-        int forgotSkills = 0;
         MutableCharacterStatsAPI stats = officerData.getPerson().getStats();
+        // If this was an exceptional pod officer, retain max level and max elite skills data
+        MemoryAPI memory = officerData.getPerson().getMemoryWithoutUpdate();
+        if (memory.contains(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
+            if (!memory.contains(MemFlags.OFFICER_MAX_LEVEL)) {
+                memory.set(MemFlags.OFFICER_MAX_LEVEL, stats.getLevel());
+            }
+            if (!memory.contains(MemFlags.OFFICER_MAX_ELITE_SKILLS)) {
+                int numElite = 0;
+                for (MutableCharacterStatsAPI.SkillLevelAPI skill : stats.getSkillsCopy()) {
+                    if (skill.getLevel() > 1) {
+                        numElite++;
+                    }
+                }
+                memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, numElite);
+            }
+        }
+        int forgotSkills = 0;
         for (SkillButton button : uiElement.getWrappedSkillButtons()) {
             if (button.isSelected()) {
                 String skillId = button.getSkillSpec().getId();
@@ -62,22 +78,6 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
             }
         }
         if (forgotSkills > 0) {
-            // If this was an exceptional pod officer, retain max level and max elite skills data
-            MemoryAPI memory = officerData.getPerson().getMemoryWithoutUpdate();
-            if (memory.contains(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
-                if (!memory.contains(MemFlags.OFFICER_MAX_LEVEL)) {
-                    memory.set(MemFlags.OFFICER_MAX_LEVEL, stats.getLevel());
-                }
-                if (!memory.contains(MemFlags.OFFICER_MAX_ELITE_SKILLS)) {
-                    int numElite = 0;
-                    for (MutableCharacterStatsAPI.SkillLevelAPI skill : stats.getSkillsCopy()) {
-                        if (skill.getLevel() > 1) {
-                            numElite++;
-                        }
-                    }
-                    memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, numElite);
-                }
-            }
             // Preserve the percentage progress towards the next level
             OfficerLevelupPlugin levelUpPlugin = (OfficerLevelupPlugin) Global.getSettings().getPlugin("officerLevelUp");
             int level = stats.getLevel();

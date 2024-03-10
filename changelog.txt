@@ -1,3 +1,7 @@
+>>> 0.6.6
+- Added a console command to locate level 7 cryopod officers
+- Fixed issue with cryopod officers not retaining the correct number of elite skills
+
 >>> 0.6.5
 - Hotfix for Nexerelin issue; adjusted difficulty calculation will no longer work with Nex or any other mod that
   uses a modified FleetEncounterContext

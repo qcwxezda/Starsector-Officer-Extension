@@ -1,0 +1,2 @@
+command,class,tags,syntax,help
+OE_LocateExceptionalOfficers,officerextension.console.LocateExceptionalOfficers,"cheat,campaign",oe_locateexceptionalofficers,Finds level 7 cryopod officers and prints their star systems and coordinates out to the console.
