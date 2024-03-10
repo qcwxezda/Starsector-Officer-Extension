@@ -1,3 +1,7 @@
+>>> 0.6.5
+- Hotfix for Nexerelin issue; adjusted difficulty calculation will no longer work with Nex or any other mod that
+  uses a modified FleetEncounterContext
+
 >>> 0.6.4
 - Hotfix for a silent crash when computing battle difficulty for a modded fleet using a custom extension of FleetInteractionDialogPluginImpl
 
