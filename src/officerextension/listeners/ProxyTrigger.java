@@ -56,7 +56,6 @@ public abstract class ProxyTrigger implements Triggerable {
             if (throwException) {
                 throw new UnsupportedOperationException("Method " + method.getName() + " not supported by this InvocationHandler.");
             }
-            //noinspection SuspiciousInvocationHandlerImplementation
             return null;
         }
     }

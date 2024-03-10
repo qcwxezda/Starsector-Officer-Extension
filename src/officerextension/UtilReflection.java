@@ -83,10 +83,10 @@ public class UtilReflection {
     }
 
     public static Object getField(Object o, String fieldName) {
-        return getDeclaredField(o.getClass(), o, fieldName);
+        return getFieldExplicitClass(o.getClass(), o, fieldName);
     }
 
-    public static Object getDeclaredField(Class<?> cls, Object o, String fieldName) {
+    public static Object getFieldExplicitClass(Class<?> cls, Object o, String fieldName) {
         if (o == null) return null;
         try {
             Field field = cls.getDeclaredField(fieldName);
@@ -99,9 +99,13 @@ public class UtilReflection {
     }
 
     public static void setField(Object o, String fieldName, Object to) {
+        setFieldExplicitClass(o.getClass(), o, fieldName, to);
+    }
+
+    public static void setFieldExplicitClass(Class<?> cls, Object o, String fieldName, Object to) {
         if (o == null) return;
         try {
-            Field field = o.getClass().getDeclaredField(fieldName);
+            Field field = cls.getDeclaredField(fieldName);
             field.setAccessible(true);
             field.set(o, to);
         } catch (Exception e) {

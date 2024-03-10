@@ -1,3 +1,6 @@
+>>> 0.6.4
+- Hotfix for a silent crash when computing battle difficulty for a modded fleet using a custom extension of FleetInteractionDialogPluginImpl
+
 >>> 0.6.3
 - Added LunaLib support
 - Battle difficulty calculation no longer takes unassigned officers past the vanilla maximum (sorted in descending level order) into account
