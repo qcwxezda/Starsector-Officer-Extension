@@ -43,24 +43,22 @@ public class FleetListener extends BaseCampaignEventListener implements Characte
         InteractionDialogPlugin plugin = dialog.getPlugin();
         if (plugin instanceof FleetInteractionDialogPluginImpl) {
             FleetEncounterContext context = (FleetEncounterContext) UtilReflection.getFieldExplicitClass(FleetInteractionDialogPluginImpl.class, plugin, "context");
+            if (context == null || !context.getClass().equals(FleetEncounterContext.class)) return;
+            ModifiedFleetEncounterContext newContext = new ModifiedFleetEncounterContext();
 
-            if (context != null && !(context instanceof ModifiedFleetEncounterContext)) {
-                ModifiedFleetEncounterContext newContext = new ModifiedFleetEncounterContext();
-
-                for (Field field : FleetEncounterContext.class.getDeclaredFields()) {
-                    int modifiers = field.getModifiers();
-                    if (!Modifier.isStatic(modifiers) && !Modifier.isFinal(modifiers)) {
-                        field.setAccessible(true);
-                        try {
-                            field.set(newContext, field.get(context));
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        }
+            for (Field field : FleetEncounterContext.class.getDeclaredFields()) {
+                int modifiers = field.getModifiers();
+                if (!Modifier.isStatic(modifiers) && !Modifier.isFinal(modifiers)) {
+                    field.setAccessible(true);
+                    try {
+                        field.set(newContext, field.get(context));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
                     }
                 }
-
-                UtilReflection.setFieldExplicitClass(FleetInteractionDialogPluginImpl.class, plugin, "context", newContext);
             }
+
+            UtilReflection.setFieldExplicitClass(FleetInteractionDialogPluginImpl.class, plugin, "context", newContext);
         }
     }
 
