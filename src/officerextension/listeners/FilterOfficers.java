@@ -3,6 +3,7 @@ package officerextension.listeners;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.characters.SkillSpecAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Skills;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.campaign.CharacterStats;
@@ -27,6 +28,23 @@ public class FilterOfficers extends ActionListener {
 
     private final CaptainPickerDialog dialog;
     private final CoreScript injector;
+    private static final Set<String> validSkillIds = new HashSet<>();
+    static {
+        validSkillIds.add(Skills.HELMSMANSHIP);
+        validSkillIds.add(Skills.COMBAT_ENDURANCE);
+        validSkillIds.add(Skills.IMPACT_MITIGATION);
+        validSkillIds.add(Skills.DAMAGE_CONTROL);
+        validSkillIds.add(Skills.FIELD_MODULATION);
+        validSkillIds.add(Skills.POINT_DEFENSE);
+        validSkillIds.add(Skills.TARGET_ANALYSIS);
+        validSkillIds.add(Skills.BALLISTIC_MASTERY);
+        validSkillIds.add(Skills.SYSTEMS_EXPERTISE);
+        validSkillIds.add(Skills.MISSILE_SPECIALIZATION);
+        validSkillIds.add(Skills.GUNNERY_IMPLANTS);
+        validSkillIds.add(Skills.ENERGY_WEAPON_MASTERY);
+        validSkillIds.add(Skills.ORDNANCE_EXPERTISE);
+        validSkillIds.add(Skills.POLARIZED_ARMOR);
+    }
 
     public FilterOfficers(CaptainPickerDialog dialog, CoreScript injector) {
         this.dialog = dialog;
@@ -96,6 +114,9 @@ public class FilterOfficers extends ActionListener {
                 continue;
             }
             if (!spec.isCombatOfficerSkill()) {
+                continue;
+            }
+            if (!validSkillIds.contains(id)) {
                 continue;
             }
             i++;
