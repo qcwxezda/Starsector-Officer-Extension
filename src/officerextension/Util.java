@@ -2,7 +2,9 @@ package officerextension;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.characters.MutableCharacterStatsAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.combat.MutableStat;
 import com.fs.starfarer.api.util.Misc;
 import officerextension.filter.PersonalityFilter;
 import org.json.JSONArray;
@@ -135,5 +137,22 @@ public class Util {
 
     public static boolean isAssigned(OfficerDataAPI officer, CampaignFleetAPI fleet) {
         return fleet.getFleetData().getMemberWithCaptain(officer.getPerson()) != null;
+    }
+
+    public static int getMaxPlayerOfficers() {
+        int num = Misc.getMaxOfficers(Global.getSector().getPlayerFleet());
+        // Don't count the temporary nonsense we added in the dialog handler
+        MutableStat.StatMod mod = Global.getSector().getPlayerPerson().getStats().getOfficerNumber().getFlatStatMod(DialogHandler.officerNumberId);
+        return mod == null ? num : num - (int) mod.value;
+    }
+
+    public static int countEliteSkills(OfficerDataAPI data) {
+        int count = 0;
+        for (MutableCharacterStatsAPI.SkillLevelAPI level : data.getPerson().getStats().getSkillsCopy()) {
+            if (level.getLevel() > 1f) {
+                count++;
+            }
+        }
+        return count;
     }
 }

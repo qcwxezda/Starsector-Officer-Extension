@@ -69,7 +69,7 @@ public class FleetPanelInjector {
                 }
             }
             boolean canAutoAssign = idle > 0
-                    && assigned < Misc.getMaxOfficers(Global.getSector().getPlayerFleet())
+                    && assigned < Util.getMaxPlayerOfficers()
                     && hasUnofficeredShip;
 
             LabelAPI inner = idleOfficersLabel.getInstance();

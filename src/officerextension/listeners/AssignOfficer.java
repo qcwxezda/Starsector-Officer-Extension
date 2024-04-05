@@ -38,7 +38,7 @@ public class AssignOfficer extends ActionListener {
             origActionPerformed.invoke(originalListener, args[0], args[1]);
 
             // If the assignment caused us to go past our officer limit, then undo it
-            int maxOfficers = Misc.getMaxOfficers(playerFleet);
+            int maxOfficers = Util.getMaxPlayerOfficers();
             if (Util.countAssignedNonMercOfficers(playerFleet) > maxOfficers) {
                 // If the original officer was a mercenary, set it back to the mercenary (mercenaries don't count against limit)
                 // Otherwise unset the officer

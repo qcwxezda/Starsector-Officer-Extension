@@ -3,9 +3,11 @@ package officerextension.plugin;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignEventListener;
+import com.fs.starfarer.api.campaign.listeners.ListenerManagerAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.characters.SkillsChangeOfficerEffect;
 import officerextension.*;
+import officerextension.campaign.ModifiedSkillsChangeOfficerEffect;
 import org.apache.log4j.Logger;
 
 import java.net.URL;
@@ -53,28 +55,35 @@ public class OfficerExtension extends BaseModPlugin {
             }
         }
 
+        ListenerManagerAPI listeners = Global.getSector().getListenerManager();
+
+        DialogHandler dialogHandler = new DialogHandler();
+        listeners.addListener(dialogHandler, true);
+        Global.getSector().addTransientListener(dialogHandler);
+        Global.getSector().addTransientScript(dialogHandler);
+
         @SuppressWarnings("resource") ClassLoader cl = new ReflectionEnabledClassLoader(url, getClass().getClassLoader());
         try {
             Global.getSector().addTransientScript(
                     (EveryFrameScript) cl.loadClass("officerextension.CoreScript").newInstance());
-            Object fleetListener = cl.loadClass("officerextension.FleetListener").newInstance();
-            Global.getSector().addTransientListener((CampaignEventListener) fleetListener);
-            Global.getSector().getListenerManager().addListener(fleetListener, true);
         } catch (Exception e) {
             logger.error("Failure to load core script class; exiting", e);
             return;
         }
 
         Global.getSector().addTransientListener(new EconomyListener(false));
+        Global.getSector().addTransientListener(new FleetListener());
+        Global.getSector().addTransientListener(new ExceptionalOfficerChecker());
 
-        // Add suspended officers from pre 0.4 versions back into the player's fleet (for compatibility, will be
-        // removed eventually
+        listeners.removeListenerOfClass(SkillsChangeOfficerEffect.class);
+        listeners.addListener(new ModifiedSkillsChangeOfficerEffect(), true);
+
+        // If somehow the player managed to save while the game was paused, add suspended officers back into the player's fleet
         @SuppressWarnings("unchecked")
         List<OfficerDataAPI> suspendedOfficers = (List<OfficerDataAPI>) Global.getSector().getPersistentData().get(Settings.SUSPENDED_OFFICERS_DATA_KEY);
         if (suspendedOfficers != null) {
             for (OfficerDataAPI officer : suspendedOfficers) {
                 Global.getSector().getPlayerFleet().getFleetData().addOfficer(officer);
-                Util.suspend(officer);
             }
             Global.getSector().getPersistentData().remove(Settings.SUSPENDED_OFFICERS_DATA_KEY);
         }

@@ -48,6 +48,7 @@ public class CoreScript implements EveryFrameScript {
     private Label numOfficersLabel = null;
     private boolean isFirstFrame = true;
     private boolean injectedCurrentDialog = false;
+    private final DialogHandler dialogHandler;
 
     private final FleetPanelInjector fleetPanelInjector;
 
@@ -56,6 +57,8 @@ public class CoreScript implements EveryFrameScript {
 
     public CoreScript() {
         fleetPanelInjector = new FleetPanelInjector();
+        List<DialogHandler> handlers = Global.getSector().getListenerManager().getListeners(DialogHandler.class);
+        dialogHandler = handlers.get(0);
     }
 
     @Override
@@ -102,6 +105,9 @@ public class CoreScript implements EveryFrameScript {
 
         CaptainPickerDialog cpd = findCaptainPickerDialog();
         if (cpd == null || cpd != cpdRef) {
+            if (injectedCurrentDialog) {
+                dialogHandler.tempRemoveSuspendedOfficers();
+            }
             // The existing dialog was closed,
             // and we have to inject every panel again
             // Also clear any existing filters
@@ -120,6 +126,8 @@ public class CoreScript implements EveryFrameScript {
             for (FleetMemberAPI fm : fleetData.getMembersListCopy()) {
                 initialOfficerMap.put(fm, fm.getCaptain());
             }
+            dialogHandler.addSuspendedOfficersBack();
+            cpd.sizeChanged(0f, 0f);
             injectCaptainPickerDialog(cpd);
             injectedCurrentDialog = true;
         }
@@ -178,7 +186,7 @@ public class CoreScript implements EveryFrameScript {
         }
 
         int numAssigned = Util.countAssignedNonMercOfficers(Global.getSector().getPlayerFleet());
-        int numMax = Misc.getMaxOfficers(Global.getSector().getPlayerFleet());
+        int numMax = Util.getMaxPlayerOfficers();
         numOfficersLabel.getInstance().setText(String.format("Assigned: %s / %s", numAssigned, numMax));
         numOfficersLabel.getInstance().setHighlight("Assigned:", "" + numAssigned, "/ " + numMax);
         numOfficersLabel.getInstance().setHighlightColors(

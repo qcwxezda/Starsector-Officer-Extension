@@ -3,7 +3,9 @@ package officerextension.listeners;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
+import com.fs.starfarer.api.combat.MutableStat;
 import com.fs.starfarer.campaign.fleet.FleetData;
+import officerextension.DialogHandler;
 import officerextension.Util;
 import officerextension.ui.Button;
 
@@ -40,6 +42,16 @@ public class AutoAssignIdleOfficers extends ActionListener {
             }
         }
 
+        // If inside a dialog, reduce player's max officers by the temporary increase
+        int increase = 0;
+        MutableStat stat = Global.getSector().getPlayerPerson().getStats().getOfficerNumber();
+        MutableStat.StatMod mod = stat.getFlatStatMod(
+                DialogHandler.officerNumberId);
+        if (mod != null) {
+            increase = (int) mod.value;
+            stat.unmodify(DialogHandler.officerNumberId);
+        }
+
         Collections.sort(fleetData.getOfficers(),
                 new Comparator<OfficerDataAPI>() {
                     @Override
@@ -74,6 +86,11 @@ public class AutoAssignIdleOfficers extends ActionListener {
             Field officersField = fleetData.getClass().getDeclaredField("officers");
             officersField.setAccessible(true);
             officersField.set(fleetData, officersCopy);
+
+            // Add back the temporary increase, if needed
+            if (increase > 0) {
+                stat.modifyFlat(DialogHandler.officerNumberId, increase);
+            }
         }
         catch (Exception e) {
             e.printStackTrace();

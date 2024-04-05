@@ -1,4 +1,12 @@
->>> (dev)
+>>> 0.6.7
+- Periodically resets the number-of-exceptional-pod-officers-created count to the number in sector plus however many have ever
+  been in the player's fleet, making it more consistently possible to find 4 per sector.
+- Now temporarily removes all suspended officers from fleet and sets player officer count to a high number whenever you
+  open an interaction dialog, adds suspended officers back and resets player officer count when the game unpauses.
+    - This should finally cause battle difficulty calculations to not include suspended officers.
+    - Also allows events that check officer count (Luddic path bar event, modded events that add officers) to always allow
+      said officer to be added / hired.
+- Renamed LunaLib settings to include mod prefix, will reset settings if you've changed them
 - Filter officers button now only shows the 14 vanilla combat skills
 
 >>> 0.6.6

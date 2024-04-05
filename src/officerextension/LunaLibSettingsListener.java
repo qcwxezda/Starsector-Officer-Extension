@@ -21,21 +21,21 @@ public class LunaLibSettingsListener implements LunaSettingsListener {
         if (!"officerExtension".equals(modId)) return;
 
         Settings.SUSPENDED_SALARY_FRACTION =
-                getFloat("officerExtension", "general_suspendedOfficerMonthlySalaryFraction", 0f);
-        Settings.DEMOTE_OFFICER_SP_COST = getInt("officerExtension", "general_demoteOfficerSPCost", 0);
-        Settings.DEMOTE_BONUS_XP_FRACTION = getFloat("officerExtension", "general_demoteOfficerBonusXPFraction", 0f);
+                getFloat("officerExtension", "officerextension_suspendedOfficerMonthlySalaryFraction", 0f);
+        Settings.DEMOTE_OFFICER_SP_COST = getInt("officerExtension", "officerextension_demoteOfficerSPCost", 0);
+        Settings.DEMOTE_BONUS_XP_FRACTION = getFloat("officerExtension", "officerextension_demoteOfficerBonusXPFraction", 0f);
         Settings.FORGET_ELITE_BONUS_XP_FRACTION =
-                getFloat("officerExtension", "general_forgetEliteSkillBonusXPFraction", 0f);
+                getFloat("officerExtension", "officerextension_forgetEliteSkillBonusXPFraction", 0f);
         Settings.SUSPEND_OFFICER_COST_MULTIPLIER =
-                getFloat("officerExtension", "general_suspendOfficerCostMultiplier", 0f);
+                getFloat("officerExtension", "officerextension_suspendOfficerCostMultiplier", 0f);
         Settings.SHOW_COMMANDER_SKILLS =
-                getBoolean("officerExtension", "general_shouldShowFleetCommanderSkills", false);
+                getBoolean("officerExtension", "officerextension_shouldShowFleetCommanderSkills", false);
         Settings.SPLIT_COMMANDER_SKILLS =
-                getBoolean("officerExtension", "general_shouldSplitFleetCommanderSkills", false);
+                getBoolean("officerExtension", "officerextension_shouldSplitFleetCommanderSkills", false);
         Settings.PERSISTENT_OFFICER_TAGS.clear();
 
-        String tagsStr = LunaSettings.getString("officerExtension", "general_officerFilterPersistentTags");
-        if (tagsStr == null || tagsStr.trim().equals("")) {
+        String tagsStr = LunaSettings.getString("officerExtension", "officerextension_officerFilterPersistentTags");
+        if (tagsStr == null || tagsStr.trim().isEmpty()) {
             try {
                 JSONObject json = Global.getSettings().loadJSON("officerextension_settings.json");
                 JSONArray persistentTags = json.getJSONArray("officerFilterPersistentTags");

@@ -8,6 +8,7 @@ import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import com.fs.starfarer.api.plugins.OfficerLevelupPlugin;
 import com.fs.starfarer.campaign.CharacterStats;
 import officerextension.Settings;
+import officerextension.Util;
 import officerextension.ui.OfficerUIElement;
 import officerextension.ui.SkillButton;
 
@@ -47,18 +48,12 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
         MutableCharacterStatsAPI stats = officerData.getPerson().getStats();
         // If this was an exceptional pod officer, retain max level and max elite skills data
         MemoryAPI memory = officerData.getPerson().getMemoryWithoutUpdate();
-        if (memory.contains(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
+        if (memory.getBoolean(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
             if (!memory.contains(MemFlags.OFFICER_MAX_LEVEL)) {
                 memory.set(MemFlags.OFFICER_MAX_LEVEL, stats.getLevel());
             }
             if (!memory.contains(MemFlags.OFFICER_MAX_ELITE_SKILLS)) {
-                int numElite = 0;
-                for (MutableCharacterStatsAPI.SkillLevelAPI skill : stats.getSkillsCopy()) {
-                    if (skill.getLevel() > 1) {
-                        numElite++;
-                    }
-                }
-                memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, numElite);
+                memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, Util.countEliteSkills(officerData));
             }
         }
         int forgotSkills = 0;

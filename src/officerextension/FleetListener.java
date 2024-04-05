@@ -4,28 +4,22 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.*;
 import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
-import com.fs.starfarer.api.campaign.listeners.CharacterStatsRefreshListener;
 import com.fs.starfarer.api.characters.MutableCharacterStatsAPI.SkillLevelAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.characters.SkillSpecAPI;
-import com.fs.starfarer.api.combat.EngagementResultAPI;
-import com.fs.starfarer.api.impl.campaign.FleetEncounterContext;
-import com.fs.starfarer.api.impl.campaign.FleetInteractionDialogPluginImpl;
 import com.fs.starfarer.api.impl.campaign.intel.PromoteOfficerIntel;
-import officerextension.campaign.ModifiedFleetEncounterContext;
 import officerextension.campaign.ModifiedPromoteOfficerIntel;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.List;
 
-public class FleetListener extends BaseCampaignEventListener implements CharacterStatsRefreshListener {
+public class FleetListener extends BaseCampaignEventListener {
     public FleetListener() {
         super(false);
     }
 
     @Override
-    public void reportPlayerEngagement(EngagementResultAPI result) {
+    public void reportBattleFinished(CampaignFleetAPI primaryWinner, BattleAPI battle) {
+        if (!battle.isPlayerInvolved()) return;
         IntelManagerAPI manager = Global.getSector().getIntelManager();
         List<IntelInfoPlugin> promotionIntel = manager.getIntel(PromoteOfficerIntel.class);
         if (promotionIntel != null) {
@@ -39,34 +33,9 @@ public class FleetListener extends BaseCampaignEventListener implements Characte
         }
     }
 
-    private void modifyDifficultyCalculator(InteractionDialogAPI dialog) {
-        InteractionDialogPlugin plugin = dialog.getPlugin();
-        if (plugin instanceof FleetInteractionDialogPluginImpl) {
-            FleetEncounterContext context = (FleetEncounterContext) UtilReflection.getFieldExplicitClass(FleetInteractionDialogPluginImpl.class, plugin, "context");
-            if (context == null || !context.getClass().equals(FleetEncounterContext.class)) return;
-            ModifiedFleetEncounterContext newContext = new ModifiedFleetEncounterContext();
-
-            for (Field field : FleetEncounterContext.class.getDeclaredFields()) {
-                int modifiers = field.getModifiers();
-                if (!Modifier.isStatic(modifiers) && !Modifier.isFinal(modifiers)) {
-                    field.setAccessible(true);
-                    try {
-                        field.set(newContext, field.get(context));
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-
-            UtilReflection.setFieldExplicitClass(FleetInteractionDialogPluginImpl.class, plugin, "context", newContext);
-        }
-    }
-
-
     @Override
     public void reportShownInteractionDialog(InteractionDialogAPI dialog) {
         SectorEntityToken target = dialog.getInteractionTarget();
-        modifyDifficultyCalculator(dialog);
 
         if (!(target instanceof CampaignFleetAPI)) {
             return;
@@ -151,15 +120,4 @@ public class FleetListener extends BaseCampaignEventListener implements Characte
         }
         textPanel.setFontInsignia();
     }
-
-    @Override
-    public void reportAboutToRefreshCharacterStatEffects() {
-        InteractionDialogAPI dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
-        if (dialog != null) {
-            modifyDifficultyCalculator(dialog);
-        }
-    }
-
-    @Override
-    public void reportRefreshedCharacterStatEffects() {}
 }
