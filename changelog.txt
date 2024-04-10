@@ -1,3 +1,7 @@
+>>> 0.6.8 (dev)
+- Officer demotion retaining custom max levels is now more generous, allowing not just cryopod officers to retain their max
+  levels but also any custom officers that were acquired at a level above the standard max level.
+
 >>> 0.6.7
 - Periodically resets the number-of-exceptional-pod-officers-created count to the number in sector plus however many have ever
   been in the player's fleet, making it more consistently possible to find 4 per sector.

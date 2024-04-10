@@ -14,6 +14,8 @@ import officerextension.ui.SkillButton;
 
 public class ConfirmForgetSkills extends DialogDismissedListener {
 
+    public static final String DEMOTED_FROM_LEVEL = "$officerextension_DemotedFromLevel";
+    public static final String DEMOTED_FROM_ELITE_COUNT = "$officerextension_DemotedFromEliteCount";
     private final OfficerUIElement uiElement;
     private final OfficerDataAPI officerData;
 
@@ -48,14 +50,46 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
         MutableCharacterStatsAPI stats = officerData.getPerson().getStats();
         // If this was an exceptional pod officer, retain max level and max elite skills data
         MemoryAPI memory = officerData.getPerson().getMemoryWithoutUpdate();
-        if (memory.getBoolean(MemFlags.EXCEPTIONAL_SLEEPER_POD_OFFICER)) {
-            if (!memory.contains(MemFlags.OFFICER_MAX_LEVEL)) {
-                memory.set(MemFlags.OFFICER_MAX_LEVEL, stats.getLevel());
-            }
-            if (!memory.contains(MemFlags.OFFICER_MAX_ELITE_SKILLS)) {
-                memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, Util.countEliteSkills(officerData));
-            }
+
+        Integer demotedFromLevel = (Integer) memory.get(DEMOTED_FROM_LEVEL);
+        Integer demotedFromEliteCount = (Integer) memory.get(DEMOTED_FROM_ELITE_COUNT);
+        if (demotedFromLevel == null || stats.getLevel() > demotedFromLevel) {
+            demotedFromLevel = stats.getLevel();
+            memory.set(DEMOTED_FROM_LEVEL, demotedFromLevel);
         }
+        int eliteCount = Util.countEliteSkills(officerData);
+        if (demotedFromEliteCount == null || eliteCount > demotedFromEliteCount) {
+            demotedFromEliteCount = eliteCount;
+            memory.set(DEMOTED_FROM_ELITE_COUNT, demotedFromEliteCount);
+        }
+
+        OfficerLevelupPlugin plugin = (OfficerLevelupPlugin) Global.getSettings().getPlugin("officerLevelUp");
+
+        if (demotedFromLevel > plugin.getMaxLevel(officerData.getPerson())) {
+            memory.set(MemFlags.OFFICER_MAX_LEVEL, demotedFromLevel);
+        }
+        if (demotedFromEliteCount > plugin.getMaxEliteSkills(officerData.getPerson())) {
+            memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, demotedFromEliteCount);
+        }
+
+        // Weird edge case where demoted from count becomes less than standard max due to player skills granting bonuses
+        // Technically should be an invariant that should be maintained at all times
+        Integer fixedMaxLevel = (Integer) memory.get(MemFlags.OFFICER_MAX_LEVEL);
+        Integer fixedEliteCount = (Integer) memory.get(MemFlags.OFFICER_MAX_ELITE_SKILLS);
+        // temporarily unset
+        memory.unset(MemFlags.OFFICER_MAX_LEVEL);
+        memory.unset(MemFlags.OFFICER_MAX_ELITE_SKILLS);
+        int normalMaxLevel = plugin.getMaxLevel(officerData.getPerson());
+        int normalEliteCount = plugin.getMaxEliteSkills(officerData.getPerson());
+        // set back if normal values are less
+        if (fixedMaxLevel != null && normalMaxLevel < fixedMaxLevel) {
+            memory.set(MemFlags.OFFICER_MAX_LEVEL, fixedMaxLevel);
+        }
+        if (fixedEliteCount != null && normalEliteCount < fixedEliteCount) {
+            memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, fixedEliteCount);
+        }
+
+
         int forgotSkills = 0;
         for (SkillButton button : uiElement.getWrappedSkillButtons()) {
             if (button.isSelected()) {
