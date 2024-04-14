@@ -1,6 +1,8 @@
 >>> 0.6.8 (dev)
 - Officer demotion retaining custom max levels is now more generous, allowing not just cryopod officers to retain their max
   levels but also any custom officers that were acquired at a level above the standard max level.
+- Added a workaround for a vanilla game issue where loadCSV was only loading data for a single mod, which was preventing elite
+  skill icons from being loaded
 
 >>> 0.6.7
 - Periodically resets the number-of-exceptional-pod-officers-created count to the number in sector plus however many have ever

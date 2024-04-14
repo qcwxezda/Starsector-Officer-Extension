@@ -27,7 +27,7 @@ public class Util {
         personalityFilters.add(new PersonalityFilter("reckless", "Reckless"));
 
         try {
-            JSONArray array = Global.getSettings().loadCSV("data/characters/skills/aptitude_data.csv");
+            JSONArray array = Global.getSettings().getMergedSpreadsheetData("id", "data/characters/skills/aptitude_data.csv");
             for (int i = 0; i < array.length(); i++) {
                 JSONObject json = array.getJSONObject(i);
                 eliteIcons.put(json.getString("id"), json.optString("elite_overlay", null));
