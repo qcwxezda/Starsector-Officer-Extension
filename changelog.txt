@@ -1,4 +1,4 @@
->>> 0.6.8 (dev)
+>>> 0.6.8
 - Officer demotion retaining custom max levels is now more generous, allowing not just cryopod officers to retain their max
   levels but also any custom officers that were acquired at a level above the standard max level.
 - Added a workaround for a vanilla game issue where loadCSV was only loading data for a single mod, which was preventing elite
