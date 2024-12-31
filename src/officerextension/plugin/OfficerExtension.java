@@ -3,6 +3,7 @@ package officerextension.plugin;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignEventListener;
 import com.fs.starfarer.api.campaign.listeners.ListenerManagerAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.characters.SkillsChangeOfficerEffect;
@@ -66,13 +67,13 @@ public class OfficerExtension extends BaseModPlugin {
         try {
             Global.getSector().addTransientScript(
                     (EveryFrameScript) cl.loadClass("officerextension.CoreScript").newInstance());
+            Global.getSector().addTransientListener((CampaignEventListener) cl.loadClass("officerextension.FleetListener").newInstance());
         } catch (Exception e) {
             logger.error("Failure to load core script class; exiting", e);
             return;
         }
 
         Global.getSector().addTransientListener(new EconomyListener(false));
-        Global.getSector().addTransientListener(new FleetListener());
         Global.getSector().addTransientListener(new ExceptionalOfficerChecker());
 
         listeners.removeListenerOfClass(SkillsChangeOfficerEffect.class);

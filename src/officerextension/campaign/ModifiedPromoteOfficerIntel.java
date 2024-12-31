@@ -1,6 +1,7 @@
 package officerextension.campaign;
 
 import com.fs.starfarer.api.campaign.TextPanelAPI;
+import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.impl.campaign.intel.PromoteOfficerIntel;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
@@ -10,8 +11,9 @@ import org.lwjgl.input.Keyboard;
 import java.awt.Color;
 
 public class ModifiedPromoteOfficerIntel extends PromoteOfficerIntel {
-    public ModifiedPromoteOfficerIntel(TextPanelAPI text) {
+    public ModifiedPromoteOfficerIntel(PersonAPI person, TextPanelAPI text) {
         super(text);
+        this.person = person;
     }
 
     @Override

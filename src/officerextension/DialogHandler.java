@@ -8,14 +8,14 @@ import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DialogHandler extends BaseCampaignEventListener implements EveryFrameScript {
     public DialogHandler() {
         super(false);
     }
-
-    private final List<OfficerDataAPI> tempSuspendedOfficers = new ArrayList<>();
     public static final String officerNumberId = "officerextension_TempOfficerCount";
     private boolean modified = false;
 
@@ -41,7 +41,7 @@ public class DialogHandler extends BaseCampaignEventListener implements EveryFra
 
     @Override
     public void advance(float amount) {
-        if (!tempSuspendedOfficers.isEmpty()) {
+        if (Global.getSector().getPersistentData().containsKey(Settings.SUSPENDED_OFFICERS_DATA_KEY)) {
             addSuspendedOfficersBack();
         }
         if (modified) {
@@ -51,19 +51,29 @@ public class DialogHandler extends BaseCampaignEventListener implements EveryFra
     }
 
     public void addSuspendedOfficersBack() {
+        //noinspection unchecked
+        List<OfficerDataAPI> tempSuspendedOfficers =
+                (List<OfficerDataAPI>) Global.getSector().getPersistentData().remove(Settings.SUSPENDED_OFFICERS_DATA_KEY);
+        if (tempSuspendedOfficers == null) return;
         for (OfficerDataAPI data : tempSuspendedOfficers) {
             Global.getSector().getPlayerFleet().getFleetData().addOfficer(data);
         }
-        Global.getSector().getPersistentData().remove(Settings.SUSPENDED_OFFICERS_DATA_KEY);
-        tempSuspendedOfficers.clear();
     }
 
     public void tempRemoveSuspendedOfficers() {
+        //noinspection unchecked
+        List<OfficerDataAPI> tempSuspendedOfficers =
+                (List<OfficerDataAPI>) Global.getSector().getPersistentData().get(Settings.SUSPENDED_OFFICERS_DATA_KEY);
+        if (tempSuspendedOfficers == null) tempSuspendedOfficers = new ArrayList<>();
+        Set<OfficerDataAPI> existing = new HashSet<>(tempSuspendedOfficers);
+
         FleetDataAPI playerFleetData = Global.getSector().getPlayerFleet().getFleetData();
         for (OfficerDataAPI officer : playerFleetData.getOfficersCopy()) {
             if (officer.getPerson().hasTag(Settings.OFFICER_IS_SUSPENDED_KEY)) {
                 playerFleetData.removeOfficer(officer.getPerson());
-                tempSuspendedOfficers.add(officer);
+                if (!existing.contains(officer)) {
+                    tempSuspendedOfficers.add(officer);
+                }
             }
         }
         // Add to save file temporarily in case the player somehow manages to save while the game is paused

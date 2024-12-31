@@ -74,18 +74,18 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
 
         // Weird edge case where demoted from count becomes less than standard max due to player skills granting bonuses
         // Technically should be an invariant that should be maintained at all times
-        Integer fixedMaxLevel = (Integer) memory.get(MemFlags.OFFICER_MAX_LEVEL);
-        Integer fixedEliteCount = (Integer) memory.get(MemFlags.OFFICER_MAX_ELITE_SKILLS);
+        int fixedMaxLevel =  memory.getInt(MemFlags.OFFICER_MAX_LEVEL);
+        int fixedEliteCount = memory.getInt(MemFlags.OFFICER_MAX_ELITE_SKILLS);
         // temporarily unset
         memory.unset(MemFlags.OFFICER_MAX_LEVEL);
         memory.unset(MemFlags.OFFICER_MAX_ELITE_SKILLS);
         int normalMaxLevel = plugin.getMaxLevel(officerData.getPerson());
         int normalEliteCount = plugin.getMaxEliteSkills(officerData.getPerson());
         // set back if normal values are less
-        if (fixedMaxLevel != null && normalMaxLevel < fixedMaxLevel) {
+        if (normalMaxLevel < fixedMaxLevel) {
             memory.set(MemFlags.OFFICER_MAX_LEVEL, fixedMaxLevel);
         }
-        if (fixedEliteCount != null && normalEliteCount < fixedEliteCount) {
+        if (normalEliteCount < fixedEliteCount) {
             memory.set(MemFlags.OFFICER_MAX_ELITE_SKILLS, fixedEliteCount);
         }
 

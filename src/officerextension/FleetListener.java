@@ -23,11 +23,11 @@ public class FleetListener extends BaseCampaignEventListener {
         IntelManagerAPI manager = Global.getSector().getIntelManager();
         List<IntelInfoPlugin> promotionIntel = manager.getIntel(PromoteOfficerIntel.class);
         if (promotionIntel != null) {
-            InteractionDialogAPI dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
             for (IntelInfoPlugin intel : promotionIntel) {
                 if (!(intel instanceof ModifiedPromoteOfficerIntel)) {
+                    PersonAPI person = (PersonAPI) UtilReflection.getField(intel, "person");
                     manager.removeIntel(intel);
-                    manager.addIntel(new ModifiedPromoteOfficerIntel(dialog == null ? null : dialog.getTextPanel()));
+                    manager.addIntel(new ModifiedPromoteOfficerIntel(person, null), true);
                 }
             }
         }

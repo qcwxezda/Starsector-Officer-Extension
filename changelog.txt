@@ -1,3 +1,8 @@
+>>> 0.6.9
+- Fixed issue where the officer promotion intel text was popping up twice.
+- Fixed issue where suspended officers could be deleted in rare cases.
+- No longer crashes if an officer's max level memory flag is not an integer.
+
 >>> 0.6.8
 - Officer demotion retaining custom max levels is now more generous, allowing not just cryopod officers to retain their max
   levels but also any custom officers that were acquired at a level above the standard max level.
