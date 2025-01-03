@@ -140,10 +140,15 @@ public class Util {
     }
 
     public static int getMaxPlayerOfficers() {
-        int num = Misc.getMaxOfficers(Global.getSector().getPlayerFleet());
+        MutableStat officerNumber = Global.getSector().getPlayerPerson().getStats().getOfficerNumber();
+        MutableStat.StatMod mod = officerNumber.getFlatStatMod(DialogHandler.officerNumberId);
         // Don't count the temporary nonsense we added in the dialog handler
-        MutableStat.StatMod mod = Global.getSector().getPlayerPerson().getStats().getOfficerNumber().getFlatStatMod(DialogHandler.officerNumberId);
-        return mod == null ? num : num - (int) mod.value;
+        officerNumber.unmodify(DialogHandler.officerNumberId);
+        int num = Misc.getMaxOfficers(Global.getSector().getPlayerFleet());
+        if (mod != null) {
+            officerNumber.modifyFlat(DialogHandler.officerNumberId, mod.value);
+        }
+        return num;
     }
 
     public static int countEliteSkills(OfficerDataAPI data) {

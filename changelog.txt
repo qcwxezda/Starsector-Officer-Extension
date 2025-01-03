@@ -1,3 +1,7 @@
+>>> 0.6.10 (dev)
+- Made the temporary officer handler for interaction dialog purposes more robust, should now properly work with mods
+  that add multiplicative modifiers to officer count.
+
 >>> 0.6.9
 - Fixed issue where the officer promotion intel text was popping up twice.
 - Fixed issue where suspended officers could be deleted in rare cases.
