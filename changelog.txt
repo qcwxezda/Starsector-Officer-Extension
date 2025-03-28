@@ -1,6 +1,7 @@
 >>> 0.7.0:
 - Recompiled for Java 17.
 - Changed game version to 0.98a.
+- Removed the system for regenerating cryopod officers if your sector contained fewer than 4, as that is now done in the base game.
 
 >>> 0.6.10
 - Made the temporary officer handler for interaction dialog purposes more robust, should now properly work with mods
