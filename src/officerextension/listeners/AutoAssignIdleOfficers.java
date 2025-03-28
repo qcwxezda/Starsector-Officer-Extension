@@ -11,7 +11,6 @@ import officerextension.ui.Button;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -52,24 +51,19 @@ public class AutoAssignIdleOfficers extends ActionListener {
             stat.unmodify(DialogHandler.officerNumberId);
         }
 
-        Collections.sort(fleetData.getOfficers(),
-                new Comparator<OfficerDataAPI>() {
-                    @Override
-                    public int compare(OfficerDataAPI o1, OfficerDataAPI o2) {
-                        boolean a1 = Util.isAssigned(o1, playerFleet);
-                        boolean a2 = Util.isAssigned(o2, playerFleet);
-                        if (a1 && !a2) {
-                            return -1;
-                        }
-                        if (!a1 && a2) {
-                            return 1;
-                        }
-                        Integer l1 = o1.getPerson().getStats().getLevel();
-                        Integer l2 = o2.getPerson().getStats().getLevel();
-                        return l2.compareTo(l1);
-                    }
-                }
-            );
+        fleetData.getOfficers().sort((Comparator<OfficerDataAPI>) (o1, o2) -> {
+            boolean a1 = Util.isAssigned(o1, playerFleet);
+            boolean a2 = Util.isAssigned(o2, playerFleet);
+            if (a1 && !a2) {
+                return -1;
+            }
+            if (!a1 && a2) {
+                return 1;
+            }
+            Integer l1 = o1.getPerson().getStats().getLevel();
+            Integer l2 = o2.getPerson().getStats().getLevel();
+            return l2.compareTo(l1);
+        });
 
         try {
             Method origActionPerformed = originalListener.getClass().getMethod("actionPerformed", Object.class, Object.class);

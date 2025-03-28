@@ -1,7 +1,6 @@
 package officerextension.listeners;
 
 import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.TextFieldAPI;
 import officerextension.Util;
 import officerextension.ui.OfficerUIElement;
 

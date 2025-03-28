@@ -74,7 +74,6 @@ public class OfficerExtension extends BaseModPlugin {
         }
 
         Global.getSector().addTransientListener(new EconomyListener(false));
-        Global.getSector().addTransientListener(new ExceptionalOfficerChecker());
 
         listeners.removeListenerOfClass(SkillsChangeOfficerEffect.class);
         listeners.addListener(new ModifiedSkillsChangeOfficerEffect(), true);

@@ -1,7 +1,6 @@
 package officerextension.filter;
 
 import com.fs.starfarer.api.characters.OfficerDataAPI;
-import com.fs.starfarer.api.characters.PersonalityAPI;
 
 public class PersonalityFilter implements OfficerFilter {
 

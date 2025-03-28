@@ -6,7 +6,6 @@ import com.fs.starfarer.api.characters.MutableCharacterStatsAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import com.fs.starfarer.api.plugins.OfficerLevelupPlugin;
-import com.fs.starfarer.campaign.CharacterStats;
 import officerextension.Settings;
 import officerextension.Util;
 import officerextension.ui.OfficerUIElement;
@@ -119,7 +118,7 @@ public class ConfirmForgetSkills extends DialogDismissedListener {
             int newLevel = level - forgotSkills;
             long newLevelXP = levelUpPlugin.getXPForLevel(newLevel);
             long newXP = (long) (newLevelXP + fractionToNextLevel * (levelUpPlugin.getXPForLevel(newLevel + 1) - newLevelXP));
-            ((CharacterStats) stats).setXP(newXP);
+            stats.setXP(newXP);
             stats.setLevel(stats.getLevel() - forgotSkills);
             uiElement.recreate();
         }

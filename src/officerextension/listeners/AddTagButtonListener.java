@@ -56,7 +56,7 @@ public class AddTagButtonListener extends ActionListener {
 
         String text = textField.getText().toLowerCase(Locale.ROOT).trim();
 
-        if ("".equals(text)) {
+        if (text.isEmpty()) {
             textField.setText("");
             return;
         }
@@ -84,7 +84,7 @@ public class AddTagButtonListener extends ActionListener {
                 Misc.getBrightPlayerColor(),
                 EditTags.BUTTON_WIDTH,
                 EditTags.BUTTON_HEIGHT,
-                buttonMap.size() == 0 ? 0f : EditTags.BUTTON_PAD);
+                buttonMap.isEmpty() ? 0f : EditTags.BUTTON_PAD);
         List<?> children = customPanelAsPanel.getChildrenNonCopy();
         Renderable oldLastChild = new UIComponent(children.get(children.size() - 1));
         customPanelAsPanel.remove(oldLastChild);

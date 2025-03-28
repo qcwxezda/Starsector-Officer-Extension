@@ -80,7 +80,7 @@ public class EditTags extends ActionListener {
 
         final AddTagButtonListener addTagListener = new AddTagButtonListener(buttonsList, textField, buttonMap, customPanel, data.dialog);
         addButton.setListener(addTagListener);
-        addButton.getPosition().rightOfMid((UIComponentAPI) textField, 0f).setXAlignOffset(10f);
+        addButton.getPosition().rightOfMid(textField, 0f).setXAlignOffset(10f);
 
         customPanel.addUIElement(textFieldMaker).inBL(30f, 30f);
         customPanel.addUIElement(buttonsList).inTL(BUTTONS_LIST_X_PAD, BUTTONS_LIST_Y_PAD);

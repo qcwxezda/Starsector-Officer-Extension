@@ -52,27 +52,24 @@ public class EconomyListener extends BaseCampaignEventListener  {
 
         // It seems like the game is already doing some sorting of its own (i.e. stipend seems to be
         // hard-coded to be shown first in the Fleet tab), so we'll just sort only the "Officer payroll" node
-        sortFDNode(officerNode, new Comparator<Map.Entry<String, FDNode>>() {
-            @Override
-            public int compare(Map.Entry<String, FDNode> node1, Map.Entry<String, FDNode> node2) {
-                // Always display non-leaf children last
-                int size1 = node1.getValue().getChildren().size();
-                int size2 = node2.getValue().getChildren().size();
-                if (size1 > 0 && size2 == 0) {
-                    return 1;
-                }
-                if (size1 == 0 && size2 > 0) {
-                    return -1;
-                }
-                // Then, sort by descending order of upkeep - income (adjusted upkeep)
-                float upkeep1 = node1.getValue().upkeep - node1.getValue().income;
-                float upkeep2 = node2.getValue().upkeep - node2.getValue().income;
-                if (upkeep1 != upkeep2) {
-                    return Float.compare(upkeep2, upkeep1);
-                }
-                // If they have the same upkeep, sort alphabetically
-                return node1.getValue().name.compareTo(node2.getValue().name);
+        sortFDNode(officerNode, (node1, node2) -> {
+            // Always display non-leaf children last
+            int size1 = node1.getValue().getChildren().size();
+            int size2 = node2.getValue().getChildren().size();
+            if (size1 > 0 && size2 == 0) {
+                return 1;
             }
+            if (size1 == 0 && size2 > 0) {
+                return -1;
+            }
+            // Then, sort by descending order of upkeep - income (adjusted upkeep)
+            float upkeep1 = node1.getValue().upkeep - node1.getValue().income;
+            float upkeep2 = node2.getValue().upkeep - node2.getValue().income;
+            if (upkeep1 != upkeep2) {
+                return Float.compare(upkeep2, upkeep1);
+            }
+            // If they have the same upkeep, sort alphabetically
+            return node1.getValue().name.compareTo(node2.getValue().name);
         });
     }
 
@@ -82,7 +79,7 @@ public class EconomyListener extends BaseCampaignEventListener  {
         }
 
         List<Map.Entry<String, FDNode>> entries = new ArrayList<>(node.getChildren().entrySet());
-        Collections.sort(entries, ctr);
+        entries.sort(ctr);
 
         node.getChildren().clear();
         for (Map.Entry<String, FDNode> entry : entries) {

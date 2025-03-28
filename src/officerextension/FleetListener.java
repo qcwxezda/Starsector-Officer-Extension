@@ -37,14 +37,13 @@ public class FleetListener extends BaseCampaignEventListener {
     public void reportShownInteractionDialog(InteractionDialogAPI dialog) {
         SectorEntityToken target = dialog.getInteractionTarget();
 
-        if (!(target instanceof CampaignFleetAPI)) {
+        if (!(target instanceof CampaignFleetAPI fleet)) {
             return;
         }
 
         // Show other side's commander's stats, if that option is enabled
         if (!Settings.SHOW_COMMANDER_SKILLS) return;
 
-        CampaignFleetAPI fleet = (CampaignFleetAPI) target;
         PersonAPI commander;
         if (fleet.getBattle() == null) {
             commander = fleet.getCommander();

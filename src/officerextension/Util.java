@@ -43,19 +43,14 @@ public class Util {
             return;
         }
         // Remove tags containing only whitespace
-        Iterator<String> itr = tags.iterator();
-        while (itr.hasNext()) {
-            if (itr.next().matches("\\s*")) {
-                itr.remove();
-            }
-        }
+        tags.removeIf(s -> s.matches("\\s*"));
         officer.getPerson().getMemoryWithoutUpdate().set(Settings.OFFICER_TAGS_DATA_KEY, tags);
     }
 
     @SuppressWarnings("unchecked")
     public static Set<String> getOfficerTags(OfficerDataAPI officer) {
         Object tags = officer.getPerson().getMemoryWithoutUpdate().get(Settings.OFFICER_TAGS_DATA_KEY);
-        return tags == null ? new HashSet<String>() : (Set<String>) tags;
+        return tags == null ? new HashSet<>() : (Set<String>) tags;
     }
 
     public static boolean hasTag(OfficerDataAPI officer, String tag) {
@@ -63,19 +58,16 @@ public class Util {
     }
 
     public static Set<String> getAllTags() {
-        Set<String> allTags = new TreeSet<>(new Comparator<String>() {
-            @Override
-            public int compare(String s1, String s2) {
-                boolean b1 = Settings.PERSISTENT_OFFICER_TAGS.contains(s1);
-                boolean b2 = Settings.PERSISTENT_OFFICER_TAGS.contains(s2);
-                if (b1 && !b2) {
-                    return -1;
-                }
-                if (!b1 && b2) {
-                    return 1;
-                }
-                return s1.compareTo(s2);
+        Set<String> allTags = new TreeSet<>((s1, s2) -> {
+            boolean b1 = Settings.PERSISTENT_OFFICER_TAGS.contains(s1);
+            boolean b2 = Settings.PERSISTENT_OFFICER_TAGS.contains(s2);
+            if (b1 && !b2) {
+                return -1;
             }
+            if (!b1 && b2) {
+                return 1;
+            }
+            return s1.compareTo(s2);
         });
         allTags.addAll(Settings.PERSISTENT_OFFICER_TAGS);
         for (OfficerDataAPI officer : Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy()) {

@@ -8,7 +8,6 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.util.Misc;
 import officerextension.Util;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,14 +36,7 @@ public class ModifiedSkillsChangeOfficerEffect extends SkillsChangeOfficerEffect
         int max = Util.getMaxPlayerOfficers();
         if (cur > max) {
             List<OfficerDataAPI> officers = Global.getSector().getPlayerFleet().getFleetData().getOfficersCopy();
-            Collections.sort(officers, new Comparator<OfficerDataAPI>() {
-                @Override
-                public int compare(OfficerDataAPI o1, OfficerDataAPI o2) {
-                    int levelDiff = o1.getPerson().getStats().getLevel() - o2.getPerson().getStats().getLevel();
-                    if (levelDiff != 0) return levelDiff;
-                    return Util.countEliteSkills(o1) - Util.countEliteSkills(o2);
-                }
-            });
+            officers.sort(Comparator.comparingInt((OfficerDataAPI o) -> o.getPerson().getStats().getLevel()).thenComparingInt(Util::countEliteSkills));
             int removed = 0;
             for (OfficerDataAPI data : officers) {
                 FleetMemberAPI member;
