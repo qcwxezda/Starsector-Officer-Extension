@@ -35,6 +35,7 @@ public class FleetListener extends BaseCampaignEventListener {
 
     @Override
     public void reportShownInteractionDialog(InteractionDialogAPI dialog) {
+        if (dialog == null) return;
         SectorEntityToken target = dialog.getInteractionTarget();
 
         if (!(target instanceof CampaignFleetAPI fleet)) {

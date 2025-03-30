@@ -2,7 +2,7 @@
   "id": "officerExtension",
   "name": "Officer Extension",
   "author": "qcwxezda",
-  "version": {"major":0, "minor":7, "patch":0},
+  "version": {"major":0, "minor":7, "patch":1},
   "dependencies": [],
   "utility": true,
   "description": "Offers a variety of enhancements to officer management and the officer selection interface.",
