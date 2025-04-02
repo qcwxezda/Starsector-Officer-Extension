@@ -10,6 +10,7 @@ import com.fs.starfarer.api.characters.SkillSpecAPI;
 import com.fs.starfarer.api.impl.campaign.intel.PromoteOfficerIntel;
 import officerextension.campaign.ModifiedPromoteOfficerIntel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FleetListener extends BaseCampaignEventListener {
@@ -22,14 +23,18 @@ public class FleetListener extends BaseCampaignEventListener {
         if (!battle.isPlayerInvolved()) return;
         IntelManagerAPI manager = Global.getSector().getIntelManager();
         List<IntelInfoPlugin> promotionIntel = manager.getIntel(PromoteOfficerIntel.class);
+        List<IntelInfoPlugin> toRemove = new ArrayList<>();
         if (promotionIntel != null) {
             for (IntelInfoPlugin intel : promotionIntel) {
                 if (!(intel instanceof ModifiedPromoteOfficerIntel)) {
                     PersonAPI person = (PersonAPI) UtilReflection.getField(intel, "person");
-                    manager.removeIntel(intel);
+                    toRemove.add(intel);
                     manager.addIntel(new ModifiedPromoteOfficerIntel(person, null), true);
                 }
             }
+        }
+        for (IntelInfoPlugin intel : toRemove) {
+            manager.removeIntel(intel);
         }
     }
 
