@@ -10,6 +10,9 @@ import officerextension.filter.PersonalityFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.*;
 import java.util.List;
 
@@ -141,6 +144,18 @@ public class Util {
             officerNumber.modifyFlat(DialogHandler.officerNumberId, mod.value);
         }
         return num;
+    }
+
+    public static <T> T instantiateClassNoParams(Class<T> cls) throws NoSuchMethodException, IllegalAccessException {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandle mh = lookup.findConstructor(cls, MethodType.methodType(void.class));
+        try {
+            //noinspection unchecked
+            return (T) mh.invoke();
+        }
+        catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static int countEliteSkills(OfficerDataAPI data) {
