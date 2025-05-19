@@ -5,6 +5,7 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.combat.MutableStat;
 import com.fs.starfarer.campaign.fleet.FleetData;
+import officerextension.CoreScript;
 import officerextension.DialogHandler;
 import officerextension.Util;
 import officerextension.ui.Button;
@@ -89,5 +90,8 @@ public class AutoAssignIdleOfficers extends ActionListener {
         catch (Exception e) {
             e.printStackTrace();
         }
+
+        // Save assignments to "last assigned" map
+        CoreScript.updateLastAssignedOfficers();
     }
 }

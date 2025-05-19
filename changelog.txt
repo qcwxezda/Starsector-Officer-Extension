@@ -1,4 +1,10 @@
->>> 0.7.2 (dev):
+>>> 0.7.3:
+- Added "Last assigned" tracker, tracks the last assigned officer for each ship in your fleet.
+    - Persists through storage-retrieval/save-load cycles.
+    - Sorting officers will now show the last assigned officer first.
+- Added shortcuts for undo (U), filter (F), clear filters (C), and sort (S).
+
+>>> 0.7.2:
 - Fix for a rare potential crash if multiple officer promotion candidates are gained from a single battle.
 - Replaced usages of deprecated Class.newInstance method.
 

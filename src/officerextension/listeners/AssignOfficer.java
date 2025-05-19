@@ -50,7 +50,7 @@ public class AssignOfficer extends ActionListener {
                 Global.getSector().getCampaignUI().getMessageDisplay().addMessage("Officer limit reached", Misc.getNegativeHighlightColor());
             }
 
-            uiElement.getInjector().updateNumOfficersLabel();
+            uiElement.getInjector().recreateAll(uiElement.getCaptainPickerDialog());
         }
         catch (Exception e) {
             e.printStackTrace();

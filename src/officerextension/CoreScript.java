@@ -16,6 +16,7 @@ import officerextension.ui.*;
 import officerextension.listeners.*;
 import officerextension.ui.Button;
 import officerextension.ui.Label;
+import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 import java.lang.reflect.Field;
@@ -107,6 +108,7 @@ public class CoreScript implements EveryFrameScript {
         if (cpd == null || cpd != cpdRef) {
             if (injectedCurrentDialog) {
                 dialogHandler.tempRemoveSuspendedOfficers();
+                updateLastAssignedOfficers();
             }
             // The existing dialog was closed,
             // and we have to inject every panel again
@@ -196,7 +198,7 @@ public class CoreScript implements EveryFrameScript {
     }
 
     private void insertUndoButton(CaptainPickerDialog cpd) {
-        UndoAssignments undoListener = new UndoAssignments(initialOfficerMap, this);
+        UndoAssignments undoListener = new UndoAssignments(initialOfficerMap, cpd, this);
         Button undoButton = UtilReflection.makeButton(
                 "Undo assignments",
                 undoListener,
@@ -204,6 +206,7 @@ public class CoreScript implements EveryFrameScript {
                 Misc.getDarkPlayerColor(),
                 150f,
                 25f);
+        undoButton.setShortcut(Keyboard.KEY_U, false);
         UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         if (Misc.isAutomated(CaptainPicker.getFleetMember(cpd))) {
             panel.add(undoButton).getInstance().inBL(10f, 10f);
@@ -223,6 +226,7 @@ public class CoreScript implements EveryFrameScript {
                 120f,
                 25f
         );
+        filterButton.setShortcut(Keyboard.KEY_F, false);
         UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         panel.add(filterButton).getInstance().inBMid(10f).setXAlignOffset(-100f);
     }
@@ -237,6 +241,7 @@ public class CoreScript implements EveryFrameScript {
                 120f,
                 25f
         );
+        clearButton.setShortcut(Keyboard.KEY_C, false);
         UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         panel.add(clearButton).getInstance().inBMid(10f).setXAlignOffset(35f);
     }
@@ -251,6 +256,7 @@ public class CoreScript implements EveryFrameScript {
                 120f,
                 25f
         );
+        sortButton.setShortcut(Keyboard.KEY_S, false);
         UIPanel panel = new UIPanel(UtilReflection.invokeGetter(cpd, "getInnerPanel"));
         panel.add(sortButton).getInstance().inBMid(10f).setXAlignOffset(170f);
     }
@@ -265,6 +271,15 @@ public class CoreScript implements EveryFrameScript {
         }
     }
 
+    public void recreateAll(CaptainPickerDialog cpd) {
+        List<?> officerUIList = (List<?>) UtilReflection.invokeGetter(UtilReflection.invokeGetter(cpd, "getListOfficers"), "getItems");
+        if (officerUIList != null) {
+            for (Object o : officerUIList) {
+                new OfficerUIElement(o, this).recreate();
+            }
+        }
+    }
+
     /** Injects the custom behavior into the specified officer UI element in the
      *  captain picker dialog list. */
     private void inject(OfficerUIElement elem) {
@@ -272,25 +287,46 @@ public class CoreScript implements EveryFrameScript {
         officerPanelFirstChild.put(elem, elem.getChildrenNonCopy().get(0));
 
         OfficerDataAPI data = elem.getOfficerData();
-        // Player can't forget skills or be suspended
-        if (data.getPerson().equals(Global.getSector().getPlayerPerson())) {
-            return;
-        }
         // AI cores can't forget skills or be suspended
         if (data.getPerson().isAICore()) {
             return;
         }
 
         // Inject our own selection listener to the portrait and selector
+        // Note: also inject the player button so that we can refresh the list after selecting it,
+        // so that the "last selected" text remains accurate
         AssignOfficer listener = new AssignOfficer(elem, elem.getPortrait().getListener());
         elem.getPortrait().setListener(listener);
         elem.getSelector().setListener(listener);
         elem.getPortrait().setEnabled(true);
         elem.getSelector().setEnabled(true);
 
+        // Player can't forget skills or be suspended
+        if (data.getPerson().equals(Global.getSector().getPlayerPerson())) {
+            return;
+        }
+
         // Set the *panel*'s (not the officer's!) local "isMercenary" tag to true
         // this bypasses the per-frame isPastMax check
         elem.setIsMercenary(true);
+
+        //noinspection unchecked
+        var lastOfficerMap = (Map<String, String>) Global.getSector().getMemoryWithoutUpdate().get(Settings.LAST_OFFICER_KEY);
+        if (lastOfficerMap != null) {
+            String lastOfficerId = lastOfficerMap.get(elem.getFleetMember().getId());
+            var existingOfficer = elem.getFleetMember().getCaptain();
+            String existingOfficerId = existingOfficer == null || existingOfficer.isDefault() ? null : existingOfficer.getId();
+            if (Objects.equals(data.getPerson().getId(), lastOfficerId) && !Objects.equals(existingOfficerId, lastOfficerId)) {
+                Label lastAssignedLabel = new Label(elem.getStatusLabel()).create("(Last assigned)");
+                lastAssignedLabel.getInstance().setAlignment(Alignment.MID);
+                lastAssignedLabel.getInstance().setHighlight("(Last assigned)");
+                lastAssignedLabel.getInstance().setHighlightColor(Misc.getHighlightColor());
+                var fleetMemberLabelPos = elem.getFleetMemberLabel().getPosition();
+                var pos = elem.add(lastAssignedLabel);
+                pos.set(fleetMemberLabelPos);
+                pos.getInstance().setYAlignOffset(-40f);
+            }
+        }
 
         // Mercenaries can't forget skills or be suspended
         if (Misc.isMercenary(data.getPerson())) {
@@ -535,5 +571,19 @@ public class CoreScript implements EveryFrameScript {
 
     public Map<OfficerFilter, OfficerFilter> getActiveFilters() {
         return activeFilters;
+    }
+
+    public static void updateLastAssignedOfficers() {
+        //noinspection unchecked
+        var map = (Map<String, String>) Global.getSector().getMemoryWithoutUpdate().get(Settings.LAST_OFFICER_KEY);
+        if (map == null) {
+            map = new HashMap<>();
+            Global.getSector().getMemoryWithoutUpdate().set(Settings.LAST_OFFICER_KEY, map);
+        }
+        for (var fm : Global.getSector().getPlayerFleet().getFleetData().getMembersListCopy()) {
+            if (fm.getCaptain() != null && !fm.getCaptain().isDefault() && !fm.getCaptain().isAICore() && !fm.getCaptain().isPlayer()) {
+                map.put(fm.getId(), fm.getCaptain().getId());
+            }
+        }
     }
 }

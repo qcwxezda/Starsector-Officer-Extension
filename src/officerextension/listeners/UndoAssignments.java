@@ -6,19 +6,21 @@ import com.fs.starfarer.api.characters.OfficerDataAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.util.Misc;
+import com.fs.starfarer.coreui.CaptainPickerDialog;
 import officerextension.CoreScript;
 import officerextension.Util;
-
 import java.util.Map;
 
 public class UndoAssignments extends ActionListener {
 
     private final Map<FleetMemberAPI, PersonAPI> officerMap;
     private final CoreScript injector;
+    private final CaptainPickerDialog cpd;
 
-    public UndoAssignments(Map<FleetMemberAPI, PersonAPI> officerMap, CoreScript injector) {
+    public UndoAssignments(Map<FleetMemberAPI, PersonAPI> officerMap, CaptainPickerDialog cpd, CoreScript injector) {
         this.officerMap = officerMap;
         this.injector = injector;
+        this.cpd = cpd;
     }
 
     @Override
@@ -62,6 +64,7 @@ public class UndoAssignments extends ActionListener {
         if (failure) {
             Global.getSector().getCampaignUI().getMessageDisplay().addMessage("Could not undo all assignments", Misc.getNegativeHighlightColor());
         }
-        injector.updateNumOfficersLabel();
+
+        injector.recreateAll(cpd);
     }
 }
