@@ -1,9 +1,9 @@
-/XF
+/xf
 	*.bat
 	*.iml
 	*.gitignore 
 	*.rcj
-/XD 
+/xd
 	.git
 	.idea
 	screenshots
