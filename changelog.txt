@@ -1,3 +1,8 @@
+>>> 0.8.1:
+- Will now attempt to read the "xpGained" field of the fleet encounter context to determine the amount of XP gained in a battle when determining how much XP to give idle officers, if that setting is enabled.
+    - If this fails, will fall back to the custom XP computation.
+- Fixed an issue where the idle officer XP gain text was larger than intended.
+
 >>> 0.8.0:
 - Added a setting to allow benched officers to gain some XP. Default is still no XP gain, same as vanilla.
     - Only applies to officers that are neither suspended nor currently assigned to a ship.

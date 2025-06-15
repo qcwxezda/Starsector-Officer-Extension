@@ -14,6 +14,7 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.impl.campaign.FleetEncounterContext;
 import com.fs.starfarer.api.impl.campaign.intel.PromoteOfficerIntel;
 import officerextension.campaign.ModifiedPromoteOfficerIntel;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +50,14 @@ public class FleetListener extends BaseCampaignEventListener implements EveryFra
         }
 
         if (!officerIdsDeployedInLastBattle.isEmpty() && Settings.IDLE_OFFICERS_XP_FRACTION > 0f) {
+            float xpGained;
+            try {
+                var context = Global.getSector().getCampaignUI().getCurrentInteractionDialog().getPlugin().getContext();
+                xpGained = (float) UtilReflection.getField(context, "xpGained");
+            } catch (Throwable e) {
+                Logger.getLogger(FleetListener.class).warn("Unable to get XP gained from fleet encounter context; falling back to custom computation");
+                xpGained = computedLastBattleXPGain;
+            }
             Set<String> idsInShips = new HashSet<>();
             var playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.getFleetData().getMembersListCopy().forEach((fm) -> {
@@ -57,21 +66,25 @@ public class FleetListener extends BaseCampaignEventListener implements EveryFra
                 }
             });
             var filtered = playerFleet.getFleetData().getOfficersCopy().stream().filter(x -> !idsInShips.contains(x.getPerson().getId())).toList();
+            TextPanelAPI panel = null;
+            var dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+            if (dialog != null) {
+                panel = dialog.getTextPanel();
+                panel.setFontSmallInsignia();
+            }
             for (var officer : filtered) {
-                TextPanelAPI panel = null;
-                var dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
-                if (dialog != null) {
-                    panel = dialog.getTextPanel();
-                }
-                officer.addXP((long) (Settings.IDLE_OFFICERS_XP_FRACTION * lastBattleXPGain) / (officerIdsDeployedInLastBattle.size() + filtered.size()), panel);
+                officer.addXP((long) (Settings.IDLE_OFFICERS_XP_FRACTION * xpGained) / (officerIdsDeployedInLastBattle.size() + filtered.size()), panel);
+            }
+            if (panel != null) {
+                panel.setFontInsignia();
             }
         }
 
-        lastBattleXPGain = 0f;
+        computedLastBattleXPGain = 0f;
         officerIdsDeployedInLastBattle.clear();
     }
 
-    private float lastBattleXPGain = 0f;
+    private float computedLastBattleXPGain = 0f;
     private final Set<String> officerIdsDeployedInLastBattle = new HashSet<>();
     @Override
     public void reportPlayerEngagement(EngagementResultAPI result) {
@@ -91,7 +104,7 @@ public class FleetListener extends BaseCampaignEventListener implements EveryFra
                 float difficulty = (context instanceof FleetEncounterContext fContext) ? fContext.getDifficulty() : 1f;
                 xpGained *= 2f * Math.max(1f, difficulty) * context.computePlayerContribFraction();
                 xpGained *= Global.getSettings().getFloat("xpGainMult");
-                lastBattleXPGain += (long) xpGained;
+                computedLastBattleXPGain += (long) xpGained;
                 // pursuit, no deployed data
                 if (playerResult.getAllEverDeployedCopy() == null) {
                     return;
