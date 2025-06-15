@@ -2,11 +2,11 @@
   "id": "officerExtension",
   "name": "Officer Extension",
   "author": "qcwxezda",
-  "version": {"major":0, "minor":7, "patch":3},
+  "version": {"major":0, "minor":8, "patch":0},
   "dependencies": [],
   "utility": true,
   "description": "Offers a variety of enhancements to officer management and the officer selection interface.",
-  "gameVersion": "0.98a-RC5",
+  "gameVersion": "0.98a-RC8",
   "jars": ["jars/Officer Extension.jar"],
   "modPlugin": "officerextension.plugin.OfficerExtension"
 }

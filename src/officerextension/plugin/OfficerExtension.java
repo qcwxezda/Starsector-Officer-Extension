@@ -67,7 +67,9 @@ public class OfficerExtension extends BaseModPlugin {
         try {
             Global.getSector().addTransientScript((EveryFrameScript) Util.instantiateClassNoParams(cl.loadClass("officerextension.CoreScript")));
             CoreScript.updateLastAssignedOfficers();
-            Global.getSector().addTransientListener((CampaignEventListener) Util.instantiateClassNoParams(cl.loadClass("officerextension.FleetListener")));
+            var fleetHandler = (CampaignEventListener & EveryFrameScript) Util.instantiateClassNoParams(cl.loadClass("officerextension.FleetListener"));
+            Global.getSector().addTransientListener(fleetHandler);
+            Global.getSector().addTransientScript(fleetHandler);
         } catch (Exception e) {
             logger.error("Failure to load core script class; exiting", e);
             return;

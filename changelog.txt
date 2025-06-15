@@ -1,3 +1,12 @@
+>>> 0.8.0:
+- Added a setting to allow benched officers to gain some XP. Default is still no XP gain, same as vanilla.
+    - Only applies to officers that are neither suspended nor currently assigned to a ship.
+    - Doesn't apply to officers that are assigned to a ship that isn't deployed.
+- Added a setting to override the number of skill choices offered when leveling up an officer.
+    - Separate settings for non-mentored and mentored officers.
+    - Note that Systems Expertise and Missile Specialization are not offered until the officer reaches level 4; this mod doesn't change that.
+- Fleet commander skills display should now show up for more fleets, including fleets hidden behind several interaction dialog prompts.
+
 >>> 0.7.3:
 - Added "Last assigned" tracker, tracks the last assigned officer for each ship in your fleet.
     - Persists through storage-retrieval/save-load cycles.

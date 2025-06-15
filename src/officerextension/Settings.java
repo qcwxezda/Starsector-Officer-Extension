@@ -14,6 +14,9 @@ public class Settings {
     public static float DEMOTE_BONUS_XP_FRACTION;
     public static float FORGET_ELITE_BONUS_XP_FRACTION;
     public static float SUSPEND_OFFICER_COST_MULTIPLIER;
+    public static float IDLE_OFFICERS_XP_FRACTION;
+    public static int SKILL_CHOICES_NOT_MENTORED;
+    public static int SKILL_CHOICES_MENTORED;
     public static boolean SHOW_COMMANDER_SKILLS;
     public static boolean SPLIT_COMMANDER_SKILLS;
     public final static Set<String> PERSISTENT_OFFICER_TAGS = new TreeSet<>();
@@ -26,6 +29,7 @@ public class Settings {
     public static final String OFFICER_TAGS_DATA_KEY = "$officerextension_OfficerTags";
     public static final String SKILL_TAG_UNREMOVABLE = "officerextension_unremovable";
     public static final String LAST_OFFICER_KEY = "$officerextension_LastAssignedOfficer";
+    public static final String SKILL_PICKS_OVERRIDE_KEY = "$officerextension_SkillPicksOverride";
 
     public static void load() {
         try {
@@ -35,6 +39,9 @@ public class Settings {
             DEMOTE_BONUS_XP_FRACTION = (float) json.getDouble("demoteOfficerBonusXPFraction");
             FORGET_ELITE_BONUS_XP_FRACTION = (float) json.getDouble("forgetEliteSkillBonusXPFraction");
             SUSPEND_OFFICER_COST_MULTIPLIER = (float) json.getDouble("suspendOfficerCostMultiplier");
+            IDLE_OFFICERS_XP_FRACTION = Math.max(0f, (float) json.getDouble("idleOfficersXpFraction"));
+            SKILL_CHOICES_MENTORED = Math.max(0 ,json.getInt("skillChoicesMentored"));
+            SKILL_CHOICES_NOT_MENTORED = Math.max(0 ,json.getInt("skillChoicesNotMentored"));
             SHOW_COMMANDER_SKILLS = json.getBoolean("shouldShowFleetCommanderSkills");
             SPLIT_COMMANDER_SKILLS = json.getBoolean("shouldSplitFleetCommanderSkills");
             PERSISTENT_OFFICER_TAGS.clear();

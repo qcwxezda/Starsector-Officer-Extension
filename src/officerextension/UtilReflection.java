@@ -12,6 +12,7 @@ import officerextension.ui.Button;
 import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class UtilReflection {
@@ -111,6 +112,23 @@ public class UtilReflection {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static Object invokeMethodExtWithClasses(Object o, String methodName, boolean isDeclaredAndHidden, Class<?>[] classes, Object... args) {
+        try {
+            return invokeMethodNoCatchExtWithClasses(o, methodName, isDeclaredAndHidden, classes, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Object invokeMethodNoCatchExtWithClasses(Object o, String methodName, boolean isDeclaredAndHidden, Class<?>[] classes, Object[] args) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method method = isDeclaredAndHidden ? o.getClass().getDeclaredMethod(methodName, classes) : o.getClass().getMethod(methodName, classes);
+        if (isDeclaredAndHidden) {
+            method.setAccessible(true);
+        }
+        return method.invoke(o, args);
     }
 
     public static Object invokeGetter(Object o, String methodName, Object... args) {

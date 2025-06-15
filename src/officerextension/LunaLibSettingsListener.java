@@ -9,32 +9,37 @@ import org.json.JSONObject;
 import java.util.Arrays;
 
 public class LunaLibSettingsListener implements LunaSettingsListener {
+    
+    public static final String id = "officerExtension";
 
     public static void init() {
         LunaLibSettingsListener settingsListener = new LunaLibSettingsListener();
         LunaSettings.addSettingsListener(settingsListener);
-        settingsListener.settingsChanged("officerExtension");
+        settingsListener.settingsChanged(id);
     }
 
     @Override
     public void settingsChanged(String modId) {
-        if (!"officerExtension".equals(modId)) return;
+        if (!id.equals(modId)) return;
 
         Settings.SUSPENDED_SALARY_FRACTION =
-                getFloat("officerExtension", "officerextension_suspendedOfficerMonthlySalaryFraction", 0f);
-        Settings.DEMOTE_OFFICER_SP_COST = getInt("officerExtension", "officerextension_demoteOfficerSPCost", 0);
-        Settings.DEMOTE_BONUS_XP_FRACTION = getFloat("officerExtension", "officerextension_demoteOfficerBonusXPFraction", 0f);
+                getFloat(id, "officerextension_suspendedOfficerMonthlySalaryFraction", 0f);
+        Settings.DEMOTE_OFFICER_SP_COST = getInt(id, "officerextension_demoteOfficerSPCost", 0);
+        Settings.DEMOTE_BONUS_XP_FRACTION = getFloat(id, "officerextension_demoteOfficerBonusXPFraction", 0f);
         Settings.FORGET_ELITE_BONUS_XP_FRACTION =
-                getFloat("officerExtension", "officerextension_forgetEliteSkillBonusXPFraction", 0f);
+                getFloat(id, "officerextension_forgetEliteSkillBonusXPFraction", 0f);
         Settings.SUSPEND_OFFICER_COST_MULTIPLIER =
-                getFloat("officerExtension", "officerextension_suspendOfficerCostMultiplier", 0f);
+                getFloat(id, "officerextension_suspendOfficerCostMultiplier", 0f);
+        Settings.IDLE_OFFICERS_XP_FRACTION = getFloat(id, "officerextension_idleOfficersXPFraction", 0f);
+        Settings.SKILL_CHOICES_NOT_MENTORED = getInt(id, "officerextension_skillChoicesNotMentored", 0);
+        Settings.SKILL_CHOICES_MENTORED = getInt(id, "officerextension_skillChoicesMentored", 0);
         Settings.SHOW_COMMANDER_SKILLS =
-                getBoolean("officerExtension", "officerextension_shouldShowFleetCommanderSkills", false);
+                getBoolean(id, "officerextension_shouldShowFleetCommanderSkills", false);
         Settings.SPLIT_COMMANDER_SKILLS =
-                getBoolean("officerExtension", "officerextension_shouldSplitFleetCommanderSkills", false);
+                getBoolean(id, "officerextension_shouldSplitFleetCommanderSkills", false);
         Settings.PERSISTENT_OFFICER_TAGS.clear();
 
-        String tagsStr = LunaSettings.getString("officerExtension", "officerextension_officerFilterPersistentTags");
+        String tagsStr = LunaSettings.getString(id, "officerextension_officerFilterPersistentTags");
         if (tagsStr == null || tagsStr.trim().isEmpty()) {
             try {
                 JSONObject json = Global.getSettings().loadJSON("officerextension_settings.json");

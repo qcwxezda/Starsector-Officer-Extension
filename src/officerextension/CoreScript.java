@@ -16,6 +16,7 @@ import officerextension.ui.*;
 import officerextension.listeners.*;
 import officerextension.ui.Button;
 import officerextension.ui.Label;
+import org.apache.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -25,6 +26,8 @@ import java.util.*;
 import java.util.List;
 
 public class CoreScript implements EveryFrameScript {
+
+    public static final Logger logger =  Logger.getLogger(CoreScript.class);
 
     /** Keep track of the initial assignments for undoing purposes */
     private final Map<FleetMemberAPI, PersonAPI> initialOfficerMap = new HashMap<>();
@@ -92,7 +95,7 @@ public class CoreScript implements EveryFrameScript {
                     ClassRefs.findAllClasses();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Issue with initializing screenpanel", e);
             }
             isFirstFrame = false;
             return;
@@ -105,6 +108,7 @@ public class CoreScript implements EveryFrameScript {
         fleetPanelInjector.advance();
 
         CaptainPickerDialog cpd = findCaptainPickerDialog();
+
         if (cpd == null || cpd != cpdRef) {
             if (injectedCurrentDialog) {
                 dialogHandler.tempRemoveSuspendedOfficers();
@@ -346,6 +350,39 @@ public class CoreScript implements EveryFrameScript {
             }
         }
 
+        // The "level up" button should regenerate skill choices if needed due settings changes
+        var origListener = elem.getLevelUpButton().getListener();
+        elem.getLevelUpButton().setListener(new ActionListener() {
+            @Override
+            public void trigger(Object... args) {
+                var mem = officerPerson.getMemoryWithoutUpdate();
+                int countNonMentor = Settings.SKILL_CHOICES_NOT_MENTORED;
+                int countMentor = Settings.SKILL_CHOICES_MENTORED;
+                boolean mentored = Misc.isMentored(officerPerson);
+                var picks = elem.getOfficerData().getSkillPicks();
+                if (mentored) {
+                    if (countMentor > 0) {
+                        mem.set(MemFlags.OFFICER_SKILL_PICKS_PER_LEVEL, countMentor, 0f);
+                    }
+                    if (picks != null && !picks.isEmpty() && countMentor != mem.getInt(Settings.SKILL_PICKS_OVERRIDE_KEY)) {
+                        elem.getOfficerData().makeSkillPicks();
+                    }
+                    mem.set(Settings.SKILL_PICKS_OVERRIDE_KEY, countMentor);
+                } else {
+                    if (countNonMentor > 0) {
+                        mem.set(MemFlags.OFFICER_SKILL_PICKS_PER_LEVEL, countNonMentor, 0f);
+                    }
+                    if (picks != null && !picks.isEmpty() && countNonMentor != mem.getInt(Settings.SKILL_PICKS_OVERRIDE_KEY)) {
+                        elem.getOfficerData().makeSkillPicks();
+                    }
+                    mem.set(Settings.SKILL_PICKS_OVERRIDE_KEY, countNonMentor);
+                }
+                UtilReflection.invokeMethodExtWithClasses(origListener, "actionPerformed", false,
+                        new Class[]{Object.class, Object.class},
+                        args);
+            }
+        });
+
         if (Util.isSuspended(data)) {
             // Update the salary label
             LabelAPI label = elem.getSalaryLabel();
@@ -535,7 +572,7 @@ public class CoreScript implements EveryFrameScript {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to call removeItem", e);
         }
 
         try {
